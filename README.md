@@ -1,6 +1,6 @@
-# Para Todos — portal de notícias
+# Notícias Para Todos — portal de notícias
 
-Transformação integral do protótipo de petição num portal editorial estático, compatível com o alojamento Vercel existente. Nome provisório: Para Todos.
+Transformação integral do protótipo de petição num portal editorial estático, compatível com o alojamento Vercel existente. Nome: Notícias Para Todos.
 
 ## Funcionalidades
 

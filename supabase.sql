@@ -5,7 +5,7 @@ create table if not exists public.articles (
  summary text not null,
  body text not null,
  category text not null check (category in ('Angola','Mundo','Diáspora','Desporto','Tecnologia','Oportunidades')),
- author text not null default 'Redação Para Todos',
+ author text not null default 'Redação Notícias Para Todos',
  source_url text check (source_url is null or source_url like 'https://%'),
  published boolean not null default false,
  published_at timestamptz not null default now(),
