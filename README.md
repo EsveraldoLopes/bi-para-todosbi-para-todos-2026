@@ -43,3 +43,10 @@ Seis notícias do boletim da manhã foram resumidas pela redação e publicadas 
 ## Imagens de destaque
 
 Os artigos aceitam image_url (HTTPS, images.unsplash.com), image_alt, image_credit, image_source_url e image_caption. As seis fotografias iniciais são de arquivo/ilustrativas, disponibilizadas sob a licença Unsplash (https://unsplash.com/license), com autoria e ligação original na leitura do artigo. As legendas distinguem a ilustração do acontecimento noticiado. Imagens carregam sob pedido, com dimensões reservadas e alternativa gráfica se falharem. O serviço externo Unsplash fornece os ficheiros.
+
+
+## Carrossel e mercados globais
+
+O topo substitui o globo por um carrossel dos artigos que não integram os seis cartões fotográficos iniciais. Percorre os restantes artigos publicados, avança de oito em oito segundos e oferece setas, pausa e leitura; pausa com foco, rato, documento oculto, leitor aberto e respeita movimento reduzido. Pesquisa e secções mantêm-se; Ver todas expande a edição. Acrescentados 23 destaques verificados do boletim de 23/10/2026; o apontamento sobre chuvas no Huambo não foi republicado sem confirmação suficiente.
+
+O painel usa o widget oficial TradingView Market Overview, carregado pelo fornecedor, com commodities, índices e câmbio. Os preços não são simulados nem obtidos pelo Supabase. A atualização e os atrasos dependem do fornecedor/instrumento e das sessões; CFDs são identificados. Em falha fica uma ligação direta ao TradingView. Não é um indicador de fluxo económico global ou PIB em tempo real.
