@@ -1,25 +1,10 @@
-<!doctype html>
-<html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Administração — Notícias Para Todos</title>
-<style>body{font:16px system-ui;background:#101e35;color:#fff;margin:0;min-height:100vh;display:grid;place-items:center}main{width:min(420px,90vw);background:#fff;color:#17243b;padding:2rem;border-radius:16px}label{display:block;margin-top:1rem}input,button{box-sizing:border-box;width:100%;padding:12px;margin-top:6px;font:inherit}button{background:#1454b8;color:white;border:0;border-radius:7px;cursor:pointer}button:disabled{opacity:.6}#message{min-height:1.5em}a{color:#1454b8}</style>
-<script src="/config.js"></script></head><body><main><h1>Notícias Para Todos</h1><p>Área reservada à administração</p>
-<form id="login"><label>Email<input id="email" type="email" autocomplete="username" required></label><label>Palavra-passe<input id="password" type="password" autocomplete="current-password" required></label><button id="submit">Entrar</button></form>
-<section id="dashboard" hidden><h2>Acesso administrativo confirmado</h2><p>A gestão de artigos permanece no Table Editor do Supabase até serem configuradas políticas de escrita seguras.</p><button id="logout">Terminar sessão</button></section>
-<p id="message" role="status" aria-live="polite"></p><p><a href="/">← Voltar ao portal</a></p></main>
-<script type="module">
-import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
-const cfg=window.PORTAL_CONFIG;
-const msg=document.getElementById('message'),form=document.getElementById('login'),dashboard=document.getElementById('dashboard');
-if(!cfg?.supabaseUrl||!cfg?.supabaseAnonKey){msg.textContent='Configuração de autenticação indisponível.';form.hidden=true;throw Error('Missing config');}
-const supabase=createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
-async function refresh(){
-  const {data:{user},error}=await supabase.auth.getUser();
-  if(error||!user){form.hidden=false;dashboard.hidden=true;return;}
-  const {data, error:roleError}=await supabase.from('profiles').select('role').eq('id',user.id).maybeSingle();
-  if(roleError||data?.role!=='admin'){await supabase.auth.signOut();form.hidden=false;dashboard.hidden=true;msg.textContent='Esta conta não tem autorização de administrador.';return;}
-  form.hidden=true;dashboard.hidden=false;msg.textContent='';
-}
-form.addEventListener('submit',async e=>{e.preventDefault();const button=document.getElementById('submit');button.disabled=true;msg.textContent='A verificar credenciais…';try{const {error}=await supabase.auth.signInWithPassword({email:document.getElementById('email').value.trim(),password:document.getElementById('password').value});if(error){msg.textContent='Não foi possível iniciar sessão. Verifique os dados.';return;}await refresh();}finally{button.disabled=false;}});
-document.getElementById('logout').addEventListener('click',async()=>{await supabase.auth.signOut();dashboard.hidden=true;form.hidden=false;document.getElementById('password').value='';msg.textContent='Sessão terminada.';});
-await refresh();
-</script></body></html>
+<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Redação — Notícias Para Todos</title><script src="/config.js"></script><style>
+*{box-sizing:border-box}body{margin:0;background:#f1f5fa;color:#142744;font:16px system-ui}header{background:#102c58;color:white;padding:20px 5%;display:flex;justify-content:space-between;gap:16px}header a{color:white}main{max-width:1150px;margin:30px auto;padding:0 18px}section{background:white;border-radius:14px;padding:22px;margin-bottom:20px;box-shadow:0 4px 18px #11294b15}.columns{display:grid;grid-template-columns:1fr 1.4fr;gap:20px}label{display:block;margin:12px 0 5px;font-weight:600}input,select,textarea{width:100%;padding:10px;border:1px solid #aebed2;border-radius:7px;font:inherit}textarea{min-height:100px}button{background:#1756b7;color:white;border:0;border-radius:7px;padding:11px 16px;cursor:pointer;margin:5px 5px 5px 0}button:disabled{opacity:.6}.danger{background:#a32938}.item{border-bottom:1px solid #e0e7f0;padding:12px 0}.item p{color:#64748b}.toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}#message{min-height:25px}[hidden]{display:none!important}@media(max-width:750px){.columns{grid-template-columns:1fr}}
+</style></head><body><header><strong>Notícias Para Todos · Administração</strong><a href="/">Voltar ao portal ↗</a></header><main>
+<section id="login"><h1>Entrada administrativa</h1><form id="login-form"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required><label for="password">Palavra-passe</label><input id="password" type="password" autocomplete="current-password" required><p><button>Entrar</button></p></form></section>
+<div id="dashboard" hidden><section><div class="toolbar"><h1>Painel editorial</h1><div><button id="reload">Atualizar</button><button id="logout">Terminar sessão</button></div></div><p>Crie notícias, guarde rascunhos e publique artigos depois de verificar as fontes.</p></section>
+<div class="columns"><section><h2>Notícias</h2><button id="new">+ Nova notícia</button><div id="articles"></div></section><section><h2 id="editor-title">Novo artigo</h2><form id="article-form">
+<label for="title">Título</label><input id="title" required minlength="3" maxlength="240"><label for="summary">Resumo</label><textarea id="summary" required></textarea><label for="body">Texto</label><textarea id="body" rows="8" required></textarea>
+<label for="category">Categoria</label><select id="category"><option>Angola</option><option>Mundo</option><option>Diáspora</option><option>Desporto</option><option>Tecnologia</option><option>Oportunidades</option></select><label for="author">Autor</label><input id="author" required>
+<label for="source_url">Fonte (HTTPS)</label><input id="source_url" type="url"><label for="image_url">Imagem (images.unsplash.com)</label><input id="image_url" type="url"><label for="image_alt">Descrição da imagem</label><input id="image_alt"><label for="image_credit">Crédito da imagem</label><input id="image_credit"><label for="image_source_url">Origem da imagem</label><input id="image_source_url" type="url"><label for="image_caption">Legenda</label><input id="image_caption">
+<label for="published_at">Data e hora de publicação</label><input id="published_at" type="datetime-local" required><label><input id="published" type="checkbox" style="width:auto"> Publicar (desmarcado = rascunho)</label><p><button id="save">Guardar artigo</button><button type="button" id="reset">Limpar</button></p></form></section></div></div><p id="message" role="status" aria-live="polite"></p></main><script type="module" src="/editorial.js"></script></body></html>
