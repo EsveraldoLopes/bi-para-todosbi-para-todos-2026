@@ -1,28 +1,31 @@
-# BI para Todos — Protótipo de petição
+# Para Todos — portal de notícias
 
-## O que contém
-- Página responsiva para telemóvel e computador.
-- Formulário de assinatura.
-- Contador demonstrativo.
-- Barra de progresso.
-- Partilha por WhatsApp e cópia de link.
-- Texto com linguagem cívica e equilibrada.
+Transformação integral do protótipo de petição num portal editorial estático, compatível com o alojamento Vercel existente. Nome provisório: Para Todos.
 
-## Importante
-Este protótipo guarda assinaturas apenas no navegador do visitante (localStorage). Não é adequado, sozinho, para recolher uma petição nacional.
+## Funcionalidades
 
-Antes de publicar:
-1. Ligar o formulário a uma base de dados segura (Supabase, Firebase ou backend próprio).
-2. Ativar validação por email e proteção CAPTCHA.
-3. Criar política de privacidade e definir responsável pelo tratamento dos dados.
-4. Não recolher nem publicar número do Bilhete de Identidade.
-5. Não usar números fictícios no contador.
-6. Exportar apenas assinaturas validadas e manter registos de auditoria.
-7. Substituir o URL provisório por um domínio real.
-8. Gerar um QR Code depois de o endereço público estar ativo.
+- Layout responsivo, navegação por seis secções e pesquisa sem distinção de acentos.
+- Artigos em janela de leitura acessível, ligação partilhável e fonte original opcional.
+- Sem recolha de assinaturas ou formulários de dados pessoais.
+- Apresentações editoriais explicitamente identificadas enquanto a base de dados não está configurada. Não se incluem notícias ou resultados inventados.
+- Leitura de até 60 artigos publicados no Supabase, por ordem de publicação. Conteúdos renderizados como texto, sem executar HTML.
 
-## Publicação simples
-Pode publicar estes ficheiros gratuitamente no Netlify, Vercel ou GitHub Pages. Para recolha real, recomenda-se Supabase ou Firebase.
+## Vercel
 
-## Nota editorial
-A comunicação oficial consultada descreve um serviço extraordinário ao domicílio sujeito a taxa, distinto do serviço nos postos convencionais. A campanha deve concentrar-se na igualdade, transparência e qualidade do atendimento público normal.
+Manter o projeto e domínio existentes. Framework preset: Other. Root directory: raiz do repositório. Não é necessário build; publicar a raiz. Rever a preview da pull request antes de integrar na branch de produção. A ligação efetiva deste repositório ao domínio ainda não foi confirmada.
+
+## Supabase
+
+1. Rever e executar `supabase.sql` no SQL Editor do projeto correto (uma vez; a policy não é idempotente).
+2. Preencher `supabaseUrl` e `supabaseAnonKey` em `config.js` com a URL e a chave pública anon/publishable do projeto. Nunca incluir service_role ou palavras-passe. As chaves públicas ficam visíveis no navegador; a proteção é assegurada pelas políticas RLS.
+3. No Table Editor, adicionar artigos à tabela `articles`: título, resumo, corpo em texto simples, categoria, autor, fonte e data.
+4. Rever o conteúdo; só depois definir `published = true`. Datas futuras ficam ocultas até à hora indicada. A política permite apenas leitura pública de artigos publicados. Escrita pelo Table Editor do proprietário.
+5. Verificar que rascunhos não são acessíveis usando a chave pública e testar a publicação numa preview.
+
+Não foi criado um painel próprio de administração ou uma integração automática de notícias. A configuração e aplicação de SQL no projeto real requerem acesso ao Supabase e não foram executadas. A atualização diária nesta conversa não alimenta o site automaticamente.
+
+## Verificação
+
+`node --check app.js` e `node --check config.js`. Verificar em navegador: filtros, pesquisa sem resultados, abertura/fecho e Escape, ligação partilhada, apresentação móvel e carregamento/erro do Supabase. O portal não depende de imagens ou bibliotecas externas.
+
+Antes do lançamento editorial: confirmar nome, contactos da redação, identidade responsável, política editorial e publicar notícias verificadas com fontes e direitos de utilização dos conteúdos.
