@@ -16,16 +16,21 @@ Manter o projeto e domínio existentes. Framework preset: Other. Root directory:
 
 ## Supabase
 
-1. Rever e executar `supabase.sql` no SQL Editor do projeto correto (uma vez; a policy não é idempotente).
-2. Preencher `supabaseUrl` e `supabaseAnonKey` em `config.js` com a URL e a chave pública anon/publishable do projeto. Nunca incluir service_role ou palavras-passe. As chaves públicas ficam visíveis no navegador; a proteção é assegurada pelas políticas RLS.
+1. A tabela e a política já foram aplicadas no projeto atual. `supabase.sql` documenta o esquema inicial; não repetir a execução no projeto configurado.
+2. `supabaseUrl` e `supabaseAnonKey` em `config.js` já apontam para o projeto atual. Para outro projeto, usar apenas a URL e a chave pública publishable. Nunca incluir service_role ou palavras-passe. As chaves públicas ficam visíveis no navegador; a proteção é assegurada pelas políticas RLS.
 3. No Table Editor, adicionar artigos à tabela `articles`: título, resumo, corpo em texto simples, categoria, autor, fonte e data.
 4. Rever o conteúdo; só depois definir `published = true`. Datas futuras ficam ocultas até à hora indicada. A política permite apenas leitura pública de artigos publicados. Escrita pelo Table Editor do proprietário.
 5. Verificar que rascunhos não são acessíveis usando a chave pública e testar a publicação numa preview.
 
-Não foi criado um painel próprio de administração ou uma integração automática de notícias. A configuração e aplicação de SQL no projeto real requerem acesso ao Supabase e não foram executadas. A atualização diária nesta conversa não alimenta o site automaticamente.
+O projeto Supabase `noticias-para-todos` está configurado na organização Notícias Para Todos (região eu-west-1). A tabela e a política foram aplicadas na migração `create_editorial_articles`. `config.js` contém apenas a URL e uma chave pública publishable. O texto de boas-vindas é editorial, sem notícias fictícias.
+
+Validação real: leitura REST com a chave pública retornou 200 e o artigo de boas-vindas. Um teste transacional com o papel anon confirmou que só o artigo publicado era visível, ocultando rascunho e agendado; INSERT/UPDATE/DELETE públicos foram negados pelas permissões. O Security Advisor retornou zero alertas. Os dados temporários de teste foram revertidos.
+
+A gestão de conteúdos é feita pelo Table Editor do Supabase. Ainda não existe painel próprio de administração ou recolha automática de notícias. A atualização diária nesta conversa não alimenta o site automaticamente.
 
 ## Verificação
 
 `node --check app.js` e `node --check config.js`. Verificar em navegador: filtros, pesquisa sem resultados, abertura/fecho e Escape, ligação partilhada, apresentação móvel e carregamento/erro do Supabase. O portal não depende de imagens ou bibliotecas externas.
 
 Antes do lançamento editorial: confirmar nome, contactos da redação, identidade responsável, política editorial e publicar notícias verificadas com fontes e direitos de utilização dos conteúdos.
+
