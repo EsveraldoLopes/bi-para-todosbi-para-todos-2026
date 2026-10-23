@@ -38,3 +38,8 @@ Antes do lançamento editorial: confirmar nome, contactos da redação, identida
 ## Primeira edição — 23 de outubro de 2026
 
 Seis notícias do boletim da manhã foram resumidas pela redação e publicadas no Supabase, com fontes identificadas: OMS África, Reuters, Wiz Research, UEFA/Bournemouth e VAVEL. O texto de boas-vindas foi retirado da listagem pública. As notícias não são atualizadas automaticamente; exigem revisão editorial e nova publicação. O carregamento inicial aguarda os conteúdos reais para evitar apresentar exemplos como notícias.
+
+
+## Imagens de destaque
+
+Os artigos aceitam image_url (HTTPS, images.unsplash.com), image_alt, image_credit, image_source_url e image_caption. As seis fotografias iniciais são de arquivo/ilustrativas, disponibilizadas sob a licença Unsplash (https://unsplash.com/license), com autoria e ligação original na leitura do artigo. As legendas distinguem a ilustração do acontecimento noticiado. Imagens carregam sob pedido, com dimensões reservadas e alternativa gráfica se falharem. O serviço externo Unsplash fornece os ficheiros.

@@ -2,6 +2,11 @@
 create table if not exists public.articles (
  id uuid primary key default gen_random_uuid(),
  title text not null check (char_length(title) between 3 and 240),
+ image_url text check (image_url is null or image_url like 'https://%'),
+ image_alt text,
+ image_credit text,
+ image_source_url text check (image_source_url is null or image_source_url like 'https://%'),
+ image_caption text,
  summary text not null,
  body text not null,
  category text not null check (category in ('Angola','Mundo','Diáspora','Desporto','Tecnologia','Oportunidades')),
