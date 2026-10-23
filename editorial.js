@@ -37,10 +37,26 @@ function renderList(){
  }
  if(!filtered.length)list.textContent='Nenhum artigo corresponde aos filtros.';
 }
+async function loadAudience(){
+ const {data,error}=await db.from('daily_views').select('view_date,article_id,view_count').order('view_date',{ascending:false}).limit(5000);
+ const box=$('audience-stats'),top=$('top-articles');box.replaceChildren();top.replaceChildren();
+ if(error){top.textContent='Não foi possível carregar a audiência: '+error.message;return;}
+ const records=data||[],today=new Date().toISOString().slice(0,10),home=records.filter(r=>!r.article_id);
+ const total=home.reduce((sum,r)=>sum+Number(r.view_count),0),todayCount=home.filter(r=>r.view_date===today).reduce((sum,r)=>sum+Number(r.view_count),0);
+ const articleViews=records.filter(r=>r.article_id).reduce((sum,r)=>sum+Number(r.view_count),0);
+ for(const [label,value] of [['Visitas à página inicial',total],['Visitas hoje (UTC)',todayCount],['Aberturas de artigos',articleViews]]){
+  const card=document.createElement('div');card.className='metric';const strong=document.createElement('strong');strong.textContent=value.toLocaleString('pt-PT');const name=document.createElement('span');name.textContent=label;card.append(strong,name);box.append(card);
+ }
+ const byId=new Map();for(const row of records)if(row.article_id)byId.set(row.article_id,(byId.get(row.article_id)||0)+Number(row.view_count));
+ const ranked=[...byId].sort((a,b)=>b[1]-a[1]).slice(0,10);
+ if(!ranked.length){top.textContent='Ainda não existem visualizações de artigos registadas.';return;}
+ const list=document.createElement('ol');for(const [id,count] of ranked){const item=document.createElement('li');item.textContent=(rows.find(r=>r.id===id)?.title||'Artigo indisponível')+' — '+count.toLocaleString('pt-PT')+' visualizações';list.append(item);}top.append(list);
+}
+$('audience-reload').onclick=loadAudience;
 async function load(){
  const {data,error}=await db.from('articles').select('*').order('created_at',{ascending:false}).limit(1000);
  if(error){notify('Não foi possível listar artigos: '+error.message);return;}
- rows=data||[];renderStats();renderList();
+ rows=data||[];renderStats();renderList();await loadAudience();
 }
 for(const id of ['search','status-filter','category-filter'])$(id).addEventListener('input',renderList);
 
