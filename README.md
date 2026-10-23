@@ -55,3 +55,8 @@ O painel usa o widget oficial TradingView Market Overview, carregado pelo fornec
 ## Publicidade direta
 
 O portal inclui duas faixas identificadas como espaços publicitários disponíveis e uma página `anunciar.html` com formatos e preparação de propostas. O formulário valida os campos e permite copiar ou descarregar um rascunho; não envia dados nem os guarda no servidor. Contactos comerciais publicados por indicação do proprietário: dudji@hotmail.com e +351 932 099 780. O pedido preparado pode ser aberto no cliente de e-mail ou no WhatsApp, cabendo ao visitante confirmar o envio na respetiva aplicação. Não há rede publicitária, cobrança, estatísticas de audiência prometidas ou anunciantes fictícios. Os espaços estão prontos para receber campanhas acordadas com a direção.
+
+
+## Estatísticas de audiência
+
+Integração de Vercel Web Analytics preparada em `analytics.js` e `analytics-config.js`, inicialmente desativada até à ativação no painel do projeto. `enabled` ativa o script; `customEvents` só deve ser ativado num plano compatível. Não se contratam serviços pagos por código. Há eventos para abertura de artigo, seleção de secção, entrada na página comercial, preparação do pedido e abertura de um canal de contacto. Não equivalem a leitura completa, mensagem enviada ou venda. A instrumentação elimina parâmetros e fragmentos dos URLs e limita propriedades a ID público do artigo, secção, posição publicitária e canal. Não recolhe texto de pesquisas, propostas, nomes, emails ou telefones. Exclui pré-visualizações, iframes e navegadores com Do Not Track. Os eventos publicitários atuais medem interesse em anunciar, não impressões de campanhas de anunciantes.
