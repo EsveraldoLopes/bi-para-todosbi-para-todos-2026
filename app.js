@@ -64,4 +64,41 @@ const marketConfig={colorTheme:'light',dateRange:'1D',locale:'pt',isTransparent:
 const marketScript=document.createElement('script');marketScript.src='https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js';marketScript.async=true;marketScript.textContent=JSON.stringify(marketConfig);marketScript.onerror=()=>{$('market-status').textContent='O painel não está disponível. Consulte os mercados na ligação TradingView.';};$('market-widget').append(marketScript);
 new MutationObserver((_,observer)=>{const frame=$('market-widget').querySelector('iframe');if(frame){frame.title='Gráfico de commodities, índices globais e câmbio — TradingView';frame.addEventListener('load',()=>{$('market-status').textContent='Painel fornecido por TradingView. Se um símbolo estiver indisponível, escolha outro instrumento.';},{once:true});observer.disconnect();}}).observe($('market-widget'),{childList:true,subtree:true});
 
+
+// Public campaigns are read from a sanitized, read-only table. Commercial notes
+// and negotiated prices are never returned to readers.
+async function displayApprovedAds(){
+ const cfg=window.PORTAL_CONFIG||{};
+ if(!cfg.supabaseUrl||!cfg.supabaseAnonKey)return;
+ try{
+  const base=safeUrl(cfg.supabaseUrl);if(!base)return;
+  const endpoint=new URL('/rest/v1/ad_publications',base);
+  endpoint.search=new URLSearchParams({select:'campaign_id,advertiser,title,placement,destination_url,image_url,start_date,end_date',order:'start_date.desc',limit:'50'});
+  const response=await fetch(endpoint,{headers:{apikey:cfg.supabaseAnonKey,...(cfg.supabaseAnonKey.startsWith('sb_publishable_')?{}:{Authorization:'Bearer '+cfg.supabaseAnonKey})},signal:AbortSignal.timeout(10000)});
+  if(!response.ok)return;
+  const campaigns=await response.json();
+  const today=new Date().toISOString().slice(0,10);
+  for(const placement of ['hero','between_sections']){
+   const slot=document.querySelector('[data-ad-placement="'+placement+'"]');
+   if(!slot)continue;
+   const ad=campaigns.find(c=>c.placement===placement&&c.start_date<=today&&c.end_date>=today&&safeUrl(c.destination_url)?.startsWith('https://')&&c.title&&c.advertiser);
+   if(!ad)continue;
+   const link=safeUrl(ad.destination_url);if(!link)continue;
+   const tag=document.createElement('span');tag.className='ad-tag';tag.textContent='PUBLICIDADE · CONTEÚDO PATROCINADO';
+   const detail=document.createElement('div');detail.className='ad-live-copy';
+   const title=document.createElement('p');title.textContent=ad.title;
+   const company=document.createElement('span');company.textContent='Anunciante: '+ad.advertiser;
+   detail.append(title,company);
+   if(ad.image_url){
+    const imageUrl=safeUrl(ad.image_url);
+    if(imageUrl&&imageUrl.startsWith('https://')){const photo=document.createElement('img');photo.className='ad-live-image';photo.src=imageUrl;photo.alt='Publicidade de '+ad.advertiser;photo.loading='lazy';photo.referrerPolicy='no-referrer';detail.prepend(photo);}
+   }
+   const action=document.createElement('a');action.href=link;action.target='_blank';action.rel='sponsored noopener noreferrer nofollow';action.textContent='Conhecer o anunciante ↗';
+   slot.replaceChildren(tag,detail,action);
+   slot.setAttribute('aria-label','Publicidade de '+ad.advertiser);
+  }
+ }catch(error){console.warn('Publicidade indisponível. Os espaços promocionais mantêm-se disponíveis.');}
+}
+
 setSlides();void trackView();load();
+void displayApprovedAds();
