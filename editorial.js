@@ -119,6 +119,7 @@ $('ad-campaign-form').onsubmit=async event=>{
  const payload={};for(const [field,id] of Object.entries(adFields))payload[field]=$(id).value.trim();
  if(payload.end_date<payload.start_date){adNotify('A data de fim deve ser igual ou posterior ao início.');return;}
  for(const key of ['destination_url','image_url']){if(payload[key]&&!/^https:\/\//i.test(payload[key])){adNotify('As ligações têm de começar por https://');return;}payload[key]=payload[key]||null;}
+ if(payload.status==='approved'&&!payload.destination_url){adNotify('Para aprovar e publicar uma campanha é obrigatório indicar a ligação HTTPS do anunciante.');return;}
  payload.amount_eur=payload.amount_eur===''?null:Number(payload.amount_eur);
  if(payload.amount_eur!==null&&(!Number.isFinite(payload.amount_eur)||payload.amount_eur<0)){adNotify('Introduza um valor válido.');return;}
  payload.notes=payload.notes||null;
