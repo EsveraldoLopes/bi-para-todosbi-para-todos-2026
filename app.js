@@ -25,6 +25,13 @@ function safeUrl(value){try{const u=new URL(value);return u.protocol==='https:'?
 // Curated licensed photographs depicting the actual club, NOT the reported match.
 // They replace repeated generic stock pictures until match-specific rights are secured.
 const sportsPhotoLibrary={
+ '58aee1c1-391b-4e7c-94ce-8d860d6369f7':{
+  url:'https://upload.wikimedia.org/wikipedia/commons/f/f8/2011_UEFA_Europa_League_trophy_at_Museu_FC_Porto.jpg',
+  credit:'Threeohsix / Wikimedia Commons · CC BY-SA 4.0',source:'https://commons.wikimedia.org/wiki/File:2011_UEFA_Europa_League_trophy_at_Museu_FC_Porto.jpg',
+  alt:'Trofeu da Liga Europa da UEFA exposto no Museu do FC Porto',
+  caption:'Imagem ilustrativa: troféu de 2011 da Liga Europa exposto no Museu do FC Porto, fotografado em 2019. Não representa um jogo da edição atual. CC BY-SA 4.0.'
+ },
+
  '00b58532-b1c5-4e44-86bb-5453c5d54525':{
   url:'https://upload.wikimedia.org/wikipedia/commons/d/db/Chicago_Bulls.jpg',
   credit:'WesleyCV / Wikimedia Commons · CC BY-SA 3.0',source:'https://commons.wikimedia.org/wiki/File:Chicago_Bulls.jpg',
