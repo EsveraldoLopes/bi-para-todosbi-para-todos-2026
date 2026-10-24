@@ -31,12 +31,34 @@ const repeatedStockSportPhoto=/photo-1771344164616-3582e4dc2f07|photo-1549210194
 // Carefully verified archive: same two teams, but a different match.
 // Never label archival photos as depicting the result in this article.
 const sportsSelectedTeamPhotos={
+
+ 'b6258a6a-f536-4f4e-be1d-b30e8833156f':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/e/e6/Elenco_do_Bournemouth_abra%C3%A7ados_ap%C3%B3s_gol_de_Rayan.jpg',
+  image_alt:'Jogadores do Bournemouth abraçados a celebrar um golo numa partida da Premier League em fevereiro de 2026',
+  image_credit:'AFC Bournemouth / Wikimedia Commons · CC BY 4.0 · Arquivo 2026',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Elenco_do_Bournemouth_abra%C3%A7ados_ap%C3%B3s_gol_de_Rayan.jpg',
+  image_caption:'Fotografia de arquivo do Bournemouth a celebrar um golo de Rayan em 8 de fevereiro de 2026; NÃO representa o jogo frente ao Milan. AFC Bournemouth / Wikimedia Commons, CC BY 4.0; enquadramento adaptado.'
+ },
+ '91fdeb98-758c-40d3-a6a3-854e13311fd2':{
+  image_url:'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ed/1_tyrese_maxey_2026_%28cropped%29.jpg/960px-1_tyrese_maxey_2026_%28cropped%29.jpg',
+  image_alt:'Tyrese Maxey com o equipamento dos Philadelphia 76ers numa partida da NBA em 2026',
+  image_credit:'Chensiyuan / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2026',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:1_tyrese_maxey_2026_(cropped).jpg',
+  image_caption:'Fotografia de arquivo de Tyrese Maxey, dos Philadelphia 76ers, em abril de 2026; NÃO representa o jogo com Cleveland. Chensiyuan / Wikimedia Commons, CC BY-SA 4.0; recorte original e enquadramento adaptado.'
+ },
+ '45cf6e2f-76b3-43b9-b45b-a5c7afc8e967':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/0/05/Ferencv%C3%A1ros_starting_11_2026_Magyar_Kupa_final.jpg',
+  image_alt:'Onze inicial do Ferencváros antes da final da Taça da Hungria em maio de 2026',
+  image_credit:'Rakeck / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2026',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Ferencv%C3%A1ros_starting_11_2026_Magyar_Kupa_final.jpg',
+  image_caption:'Fotografia de arquivo do Ferencváros antes da final da Taça da Hungria em 9 de maio de 2026; NÃO representa o jogo com o Torreense. Rakeck / Wikimedia Commons, CC BY-SA 4.0; enquadramento adaptado.'
+ },
  'bc675e3f-53d3-4292-ae8e-f19748791df0':{
-  image_url:'https://upload.wikimedia.org/wikipedia/commons/1/13/Grizzlies_vs._Thunder%2C_March_2025.png',
-  image_alt:'Shai Gilgeous-Alexander dos Oklahoma City Thunder num jogo contra os Memphis Grizzlies em março de 2025',
-  image_credit:'Young Ru Finch / Wikimedia Commons · CC BY 3.0 · Arquivo 2025',
-  image_source_url:'https://commons.wikimedia.org/wiki/File:Grizzlies_vs._Thunder,_March_2025.png',
-  image_caption:'Imagem de arquivo dos Oklahoma City Thunder frente aos Memphis Grizzlies em 14 de março de 2025; NÃO retrata o jogo Thunder–Nuggets 96–84. Young Ru Finch / Wikimedia Commons, CC BY 3.0; enquadramento adaptado.'
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/c/ce/Jalen_Williams_OKCThunder_2025_NBA_Cup.jpg',
+  image_alt:'Jalen Williams dos Oklahoma City Thunder durante a NBA Cup em dezembro de 2025',
+  image_credit:'Daiei Onoguchi / Wikimedia Commons · CC BY 4.0 · Arquivo 2025',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Jalen_Williams_OKCThunder_2025_NBA_Cup.jpg',
+  image_caption:'Fotografia de arquivo de Jalen Williams dos Oklahoma City Thunder na NBA Cup, dezembro de 2025; NÃO representa o jogo com os Nuggets. Daiei Onoguchi / Wikimedia Commons, CC BY 4.0; enquadramento adaptado.'
  },
  'ca87701f-6823-4ea8-bda5-87029c8ee646':{
   image_url:'https://upload.wikimedia.org/wikipedia/commons/9/94/Omari_Hutchinson%2C_Ipswich_Town.jpg',
@@ -73,7 +95,7 @@ function useCuratedSportsPhoto(article){
  // to historically unrelated photos or generic stadium imagery.
  return {...article,image_url:null,image_credit:null,image_alt:null,image_source_url:null,image_caption:null};
 }
-function imageUrl(value){const url=safeUrl(value);if(!url)return null;const u=new URL(url);return ['images.unsplash.com','images.pexels.com','upload.wikimedia.org'].includes(u.hostname)?u:null;}
+function imageUrl(value){const url=safeUrl(value);if(!url)return null;const u=new URL(url);return ['images.unsplash.com','images.pexels.com','upload.wikimedia.org','thumb.wikimedia.org'].includes(u.hostname)?u:null;}
 function articleImage(article,eager=false){const url=imageUrl(article.image_url);if(!url)return null;const img=document.createElement('img');img.src=url.href;img.alt=article.image_alt||'Imagem relacionada com a notícia';img.loading=eager?'eager':'lazy';img.decoding='async';img.width=1200;img.height=800;img.referrerPolicy='no-referrer';if(eager)img.fetchPriority='high';return img;}
 function readerImage(article){const fig=$('reader-image');fig.replaceChildren();const img=articleImage(article,true);fig.hidden=!img;if(!img)return;img.addEventListener('error',()=>{fig.hidden=true;},{once:true});const cap=document.createElement('figcaption');cap.textContent=article.image_caption||(article.image_credit?'Fotografia editorial':'Imagem ilustrativa.');if(article.image_credit){cap.append(' · ');const source=safeUrl(article.image_source_url);const credit=document.createElement(source?'a':'span');credit.textContent=article.image_credit;if(source){credit.href=source;credit.target='_blank';credit.rel='noopener noreferrer';}cap.append(credit);}fig.append(img,cap);}
 
