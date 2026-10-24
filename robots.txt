@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /login
+
+Sitemap: https://bi-para-todosbi-para-todos-2026.vercel.app/sitemap.xml
