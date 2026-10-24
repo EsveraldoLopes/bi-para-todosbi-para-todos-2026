@@ -77,7 +77,7 @@ async function displayApprovedAds(){
   const response=await fetch(endpoint,{headers:{apikey:cfg.supabaseAnonKey,...(cfg.supabaseAnonKey.startsWith('sb_publishable_')?{}:{Authorization:'Bearer '+cfg.supabaseAnonKey})},signal:AbortSignal.timeout(10000)});
   if(!response.ok)return;
   const campaigns=await response.json();
-  const today=new Date().toLocaleDateString('en-CA',{timeZone:'UTC'});
+  const today=new Date().toISOString().slice(0,10);
   for(const placement of ['hero','between_sections']){
    const slot=document.querySelector('[data-ad-placement="'+placement+'"]');
    if(!slot)continue;
