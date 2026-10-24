@@ -135,7 +135,7 @@ $('reload').onclick=load;$('new').onclick=clearForm;$('reset').onclick=clearForm
 $('article-form').onsubmit=async e=>{e.preventDefault();const btn=$('save');btn.disabled=true;try{
 if(!(await isAdmin())){notify('Sessão sem autorização.');return;}
 const payload={};for(const k of fields){const v=$(k).value.trim();payload[k]=['source_url','image_url','image_alt','image_credit','image_source_url','image_caption'].includes(k)?v||null:v;}
-if(payload.image_url&&new URL(payload.image_url).hostname!=='images.unsplash.com'){notify('A imagem deve ser de images.unsplash.com, como exige o portal.');return;}
+if(payload.image_url){const host=new URL(payload.image_url).hostname.toLowerCase();if(!['images.unsplash.com','images.pexels.com','upload.wikimedia.org'].includes(host)){notify('Utilize imagens de Unsplash, Pexels ou Wikimedia Commons com autorização adequada.');return;}if(host!=='images.unsplash.com'&&(!payload.image_credit||!payload.image_source_url)){notify('Para fotografias editoriais, indique o crédito e a ligação de origem/licença da imagem.');return;}}
 for(const k of ['source_url','image_url','image_source_url'])if(payload[k]&&!payload[k].startsWith('https://')){notify('As ligações devem usar HTTPS.');return;}
 payload.published=$('published').checked;payload.published_at=new Date($('published_at').value).toISOString();
 const query=currentId?db.from('articles').update(payload).eq('id',currentId):db.from('articles').insert(payload);
