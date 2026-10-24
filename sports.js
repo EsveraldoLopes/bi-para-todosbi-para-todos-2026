@@ -162,6 +162,7 @@ let enrichmentQueued=false;
 function scheduleEnrich(){if(enrichmentQueued)return;enrichmentQueued=true;requestAnimationFrame(()=>{enrichmentQueued=false;enrichArticles();});}
 new MutationObserver(scheduleEnrich).observe($('articles'),{childList:true,subtree:true});
 new MutationObserver(scheduleEnrich).observe($('slide-title'),{childList:true});
+document.addEventListener('sports-art-fallback',scheduleEnrich);
 scheduleEnrich();
 void loadTeamCatalogue();
 $('sports-explore').onclick=()=>{[...document.querySelectorAll('#categories button')].find(b=>b.textContent.includes('Desporto'))?.click();document.getElementById('articles').scrollIntoView({behavior:'smooth'});};
