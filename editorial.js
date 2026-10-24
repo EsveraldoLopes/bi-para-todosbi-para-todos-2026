@@ -147,6 +147,14 @@ $('reload').onclick=load;$('new').onclick=clearForm;$('reset').onclick=clearForm
 $('article-form').onsubmit=async e=>{e.preventDefault();const btn=$('save');btn.disabled=true;try{
 if(!(await isAdmin())){notify('Sessão sem autorização.');return;}
 const payload={};for(const k of fields){const v=$(k).value.trim();payload[k]=['source_url','image_url','image_alt','image_credit','image_source_url','image_caption'].includes(k)?v||null:v;}
+if(payload.category==='Desporto'&&payload.image_url){
+ if(/photo-1771344164616-3582e4dc2f07|photo-1549210194-fb0aac030c32/.test(payload.image_url)){
+  notify('Esta imagem genérica já foi usada em notícias sem relação com o confronto. Escolha uma fotografia específica ou deixe o campo vazio para mostrar o cartão das equipas e resultado.');return;
+ }
+ if(!payload.image_credit||!payload.image_source_url||!payload.image_alt){
+  notify('Nas notícias desportivas com fotografia, indique descrição, crédito e origem/licença da imagem. Se não tiver foto apropriada, deixe o campo vazio para criar o cartão do confronto.');return;
+ }
+}
 if(payload.image_url){const host=new URL(payload.image_url).hostname.toLowerCase();if(!['images.unsplash.com','images.pexels.com','upload.wikimedia.org'].includes(host)){notify('Utilize imagens de Unsplash, Pexels ou Wikimedia Commons com autorização adequada.');return;}if(host!=='images.unsplash.com'&&(!payload.image_credit||!payload.image_source_url)){notify('Para fotografias editoriais, indique o crédito e a ligação de origem/licença da imagem.');return;}}
 for(const k of ['source_url','image_url','image_source_url'])if(payload[k]&&!payload[k].startsWith('https://')){notify('As ligações devem usar HTTPS.');return;}
 payload.published=$('published').checked;payload.published_at=new Date($('published_at').value).toISOString();
