@@ -95,6 +95,8 @@ async function loadTeamCatalogue(){
 }
 function artForArticle(title,container){
  if(!container)return;
+ // A licensed, credited real photo takes precedence over generated team graphics.
+ if(container.dataset.editorialPhoto==='true')return;
  const match=all.find(e=>matchTeams(title,e));
  const names=match?[teamName(match.away),teamName(match.home)]:namesFromHeadline(title);
  const verified=match?[match.away.team,match.home.team]:(names?names.map(findKnownTeam):[]);
