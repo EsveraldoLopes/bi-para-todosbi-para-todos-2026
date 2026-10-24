@@ -24,72 +24,15 @@ function safeUrl(value){try{const u=new URL(value);return u.protocol==='https:'?
 
 // Curated licensed photographs depicting the actual club, NOT the reported match.
 // They replace repeated generic stock pictures until match-specific rights are secured.
-const sportsPhotoLibrary={
- '58aee1c1-391b-4e7c-94ce-8d860d6369f7':{
-  url:'https://upload.wikimedia.org/wikipedia/commons/f/f8/2011_UEFA_Europa_League_trophy_at_Museu_FC_Porto.jpg',
-  credit:'Threeohsix / Wikimedia Commons · CC BY-SA 4.0',source:'https://commons.wikimedia.org/wiki/File:2011_UEFA_Europa_League_trophy_at_Museu_FC_Porto.jpg',
-  alt:'Trofeu da Liga Europa da UEFA exposto no Museu do FC Porto',
-  caption:'Imagem ilustrativa: troféu de 2011 da Liga Europa exposto no Museu do FC Porto, fotografado em 2019. Não representa um jogo da edição atual. CC BY-SA 4.0.'
- },
-
- '00b58532-b1c5-4e44-86bb-5453c5d54525':{
-  url:'https://upload.wikimedia.org/wikipedia/commons/d/db/Chicago_Bulls.jpg',
-  credit:'WesleyCV / Wikimedia Commons · CC BY-SA 3.0',source:'https://commons.wikimedia.org/wiki/File:Chicago_Bulls.jpg',
-  alt:'Jogadores dos Chicago Bulls numa fotografia de arquivo da equipa',
-  caption:'Fotografia de arquivo dos Chicago Bulls (2013); não representa o confronto com os Bucks. CC BY-SA 3.0. Sem alterações à fotografia original, além do enquadramento visual.'
- },
- '91fdeb98-758c-40d3-a6a3-854e13311fd2':{
-  url:'https://upload.wikimedia.org/wikipedia/commons/3/37/20101025_Philadelphia_76ers.jpg',
-  credit:'Philadelphia 76ers / Wikimedia Commons · CC BY-SA 2.0',source:'https://commons.wikimedia.org/wiki/File:20101025_Philadelphia_76ers.jpg',
-  alt:'Equipa Philadelphia 76ers em fotografia de arquivo de 2010',
-  caption:'Fotografia de arquivo dos Philadelphia 76ers de 2010; não representa o confronto com Cleveland. CC BY-SA 2.0.'
- },
- '45cf6e2f-76b3-43b9-b45b-a5c7afc8e967':{
-  url:'https://upload.wikimedia.org/wikipedia/commons/0/05/Ferencv%C3%A1ros_starting_11_2026_Magyar_Kupa_final.jpg',
-  credit:'Rakeck / Wikimedia Commons · CC BY-SA 4.0',source:'https://commons.wikimedia.org/wiki/File:Ferencv%C3%A1ros_starting_11_2026_Magyar_Kupa_final.jpg',
-  alt:'Jogadores do Ferencváros alinhados antes de uma final da Taça da Hungria em 2026',
-  caption:'Fotografia de arquivo do Ferencváros na final da Taça da Hungria em maio de 2026; não representa o confronto com o Torreense. CC BY-SA 4.0.'
- },
-
- 'ca87701f-6823-4ea8-bda5-87029c8ee646':{
-  url:'https://upload.wikimedia.org/wikipedia/commons/9/9e/Nottingham_Forest_Players_22122025_%281%29.jpg',
-  credit:'Timmy96 / Wikimedia Commons · CC0', source:'https://commons.wikimedia.org/wiki/File:Nottingham_Forest_Players_22122025_(1).jpg',
-  alt:'Jogadores do Nottingham Forest em campo num encontro anterior',
-  caption:'Fotografia de arquivo do Nottingham Forest num jogo frente ao Fulham em 22/12/2025; não retrata o empate com o Ipswich. CC0.'
- },
- '3deb2fd4-66f1-4bee-abe4-08ba99257171':{
-  url:'https://upload.wikimedia.org/wikipedia/commons/9/90/Benfica_celebrating.jpg',
-  credit:'Alface / Wikimedia Commons · CC BY-SA 3.0',source:'https://commons.wikimedia.org/wiki/File:Benfica_celebrating.jpg',
-  alt:'Jogadores do Benfica celebram um golo numa partida anterior',
-  caption:'Fotografia de arquivo do Benfica frente ao Rio Ave em 2011; não representa o jogo com o Omonia. CC BY-SA 3.0.'
- },
- 'bc675e3f-53d3-4292-ae8e-f19748791df0':{
-  url:'https://upload.wikimedia.org/wikipedia/commons/4/4e/Oklahoma_City_Thunder_%285528423584%29.jpg',
-  credit:'Keith Allison / Wikimedia Commons · CC BY-SA 2.0',source:'https://commons.wikimedia.org/wiki/File:Oklahoma_City_Thunder_(5528423584).jpg',
-  alt:'Equipa Oklahoma City Thunder durante um jogo de basquetebol anterior',
-  caption:'Fotografia de arquivo dos Oklahoma City Thunder frente aos Wizards em 14/03/2011; não representa o jogo com os Nuggets. CC BY-SA 2.0.'
- },
- 'b6258a6a-f536-4f4e-be1d-b30e8833156f':{
-  url:'https://upload.wikimedia.org/wikipedia/commons/c/c2/AFC_Bournemouth.jpg',
-  credit:'Ungry Young Man / Wikimedia Commons · CC BY 2.0',source:'https://commons.wikimedia.org/wiki/File:AFC_Bournemouth.jpg',
-  alt:'Equipa do AFC Bournemouth num encontro de futebol anterior',
-  caption:'Fotografia de arquivo do AFC Bournemouth frente ao Wigan Athletic em 2018; não representa o confronto com o Milan. CC BY 2.0.'
- },
- 'df4b45a0-ebbc-4496-9534-680a9b8c5627':{
-  url:'https://upload.wikimedia.org/wikipedia/commons/f/fa/SC_Braga_2011.jpg',
-  credit:'Roger Gorączniak / Wikimedia Commons · CC BY 3.0',source:'https://commons.wikimedia.org/wiki/File:SC_Braga_2011.jpg',
-  alt:'Jogadores do Sporting Clube de Braga em fotografia de equipa',
-  caption:'Fotografia de arquivo da equipa do SC Braga em 2011 antes de um jogo com o Lech Poznań; não representa o confronto com o Gent. CC BY 3.0.'
- }
-};
+// Do not substitute historic team photographs for the event being reported.
+// Editorial photos are kept only when selected for the article by the editor.
+// The sports presentation module builds matchup graphics for match reports.
+const repeatedStockSportPhoto=/photo-1771344164616-3582e4dc2f07|photo-1549210194-fb0aac030c32/;
 function useCuratedSportsPhoto(article){
- if(article.category!=='Desporto'||!article.id)return article;
- const photo=sportsPhotoLibrary[article.id];
- if(!photo)return article;
- // Never replace a new independently selected editorial image.
- const generic=article.image_url&&(/photo-1771344164616-3582e4dc2f07|photo-1549210194-fb0aac030c32/.test(article.image_url));
- if(!generic)return article;
- return {...article,image_url:photo.url,image_alt:photo.alt,image_caption:photo.caption,image_credit:photo.credit,image_source_url:photo.source};
+ if(article.category!=='Desporto')return article;
+ if(article.image_url&&repeatedStockSportPhoto.test(article.image_url))
+  return {...article,image_url:null,image_credit:null,image_alt:null,image_source_url:null,image_caption:null};
+ return article;
 }
 function imageUrl(value){const url=safeUrl(value);if(!url)return null;const u=new URL(url);return ['images.unsplash.com','images.pexels.com','upload.wikimedia.org'].includes(u.hostname)?u:null;}
 function articleImage(article,eager=false){const url=imageUrl(article.image_url);if(!url)return null;const img=document.createElement('img');img.src=url.href;img.alt=article.image_alt||'Imagem relacionada com a notícia';img.loading=eager?'eager':'lazy';img.decoding='async';img.width=1200;img.height=800;img.referrerPolicy='no-referrer';if(eager)img.fetchPriority='high';return img;}
