@@ -95,7 +95,9 @@ async function refresh(force=false){
  if(pending||document.hidden)return;
  if(!force&&Date.now()-lastFetch<MIN_DELAY)return;
  pending=true;$('sports-status').textContent='A atualizar resultados reais…';
- const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Lisbon',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()).replace(/-/g,'');
+ const dayParts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Lisbon',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const getPart=type=>dayParts.find(p=>p.type===type)?.value||'';
+ const day=getPart('year')+getPart('month')+getPart('day');
  const settled=await Promise.allSettled(LEAGUES.map(async([sport,league,label])=>{
   const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),8500);
   try{const url='https://site.api.espn.com/apis/site/v2/sports/'+sport+'/'+league+'/scoreboard?dates='+day;
