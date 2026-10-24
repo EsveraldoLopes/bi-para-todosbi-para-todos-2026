@@ -28,11 +28,27 @@ function safeUrl(value){try{const u=new URL(value);return u.protocol==='https:'?
 // Editorial photos are kept only when selected for the article by the editor.
 // The sports presentation module builds matchup graphics for match reports.
 const repeatedStockSportPhoto=/photo-1771344164616-3582e4dc2f07|photo-1549210194-fb0aac030c32/;
+// Carefully verified archive: same two teams, but a different match.
+// Never label archival photos as depicting the result in this article.
+const sportsSpecificArchives={
+ '00b58532-b1c5-4e44-86bb-5453c5d54525':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Chicago_Bulls_vs._Milwaukee_Bucks_April_2023_34_%28in-game_action%29.jpg/1280px-Chicago_Bulls_vs._Milwaukee_Bucks_April_2023_34_%28in-game_action%29.jpg',
+  image_alt:'Chicago Bulls e Milwaukee Bucks em campo num jogo disputado em abril de 2023',
+  image_credit:'Michael Barera / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2023',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Chicago_Bulls_vs._Milwaukee_Bucks_April_2023_34_(in-game_action).jpg',
+  image_caption:'Fotografia de arquivo de Bulls contra Bucks, em 5 de abril de 2023 (105–92). NÃO representa o jogo 132–125 desta notícia. Michael Barera / Wikimedia Commons, CC BY-SA 4.0; enquadramento adaptado ao cartão.'
+ }
+};
 function useCuratedSportsPhoto(article){
  if(article.category!=='Desporto')return article;
- if(article.image_url&&repeatedStockSportPhoto.test(article.image_url))
-  return {...article,image_url:null,image_credit:null,image_alt:null,image_source_url:null,image_caption:null};
- return article;
+ // Keep any original photo specifically commissioned or selected for this article.
+ const generic=!!article.image_url&&repeatedStockSportPhoto.test(article.image_url);
+ if(!generic)return article;
+ const archive=sportsSpecificArchives[article.id];
+ if(archive)return {...article,...archive};
+ // For all other sports results, prefer the actual two teams and correct score
+ // to historically unrelated photos or generic stadium imagery.
+ return {...article,image_url:null,image_credit:null,image_alt:null,image_source_url:null,image_caption:null};
 }
 function imageUrl(value){const url=safeUrl(value);if(!url)return null;const u=new URL(url);return ['images.unsplash.com','images.pexels.com','upload.wikimedia.org'].includes(u.hostname)?u:null;}
 function articleImage(article,eager=false){const url=imageUrl(article.image_url);if(!url)return null;const img=document.createElement('img');img.src=url.href;img.alt=article.image_alt||'Imagem relacionada com a notícia';img.loading=eager?'eager':'lazy';img.decoding='async';img.width=1200;img.height=800;img.referrerPolicy='no-referrer';if(eager)img.fetchPriority='high';return img;}
