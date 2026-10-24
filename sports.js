@@ -14,6 +14,8 @@ const LEAGUES=[
 ];
 const SPORT={soccer:'Futebol',basketball:'Basquetebol',hockey:'Hóquei no gelo',football:'Futebol americano',baseball:'Basebol'};
 let all=[],currentFilter='all',lastFetch=0,pending=false;
+const knownTeams=[];
+function addTeam(team){if(!team||!team.displayName)return;const key=normal(team.displayName);if(!knownTeams.some(t=>normal(t.displayName)===key))knownTeams.push(team);}
 const MIN_DELAY=180000,REFRESH_INTERVAL=180000;
 const normal=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt').replace(/[^a-z0-9]+/g,' ').trim();
 function safeLogo(value){try{const u=new URL(value);return u.protocol==='https:'&&/^(?:a\.espncdn\.com|cdn\.espn\.com|a\.espn\.com)$/.test(u.hostname)?u.href:null;}catch{return null;}}
@@ -24,6 +26,7 @@ function getEvents(feed,sport,league){
  if(!Array.isArray(teams)||teams.length!==2)return null;
  const home=teams.find(x=>x.homeAway==='home')||teams[1],away=teams.find(x=>x.homeAway==='away')||teams[0];
  if(!home||!away)return null;
+ addTeam(home.team);addTeam(away.team);
  const state=e.status?.type?.state||'pre',description=e.status?.type?.shortDetail||'';
  const date=Date.parse(e.date||c.date);
  if(!Number.isFinite(date))return null;
@@ -61,17 +64,42 @@ function matchTeams(text,e){
  });
 }
 function namesFromHeadline(title){
- const phrase=String(title||'').match(/^(.{2,52}?)\s+(?:vence|vencem|derrota|derrotam|bate|batem|empata|empatam|supera|superam)\s+(.{2,52}?)(?:\s+por\s+|\s+na\s+|\s+no\s+|\s+ap[oó]s\s+|$)/i);
- if(!phrase)return null;
- const pair=[phrase[1].trim(),phrase[2].trim()];
- return pair.every(n=>n.length>=3&&n.length<=52)?pair:null;
+ const text=String(title||'').trim();
+ // Simple two-team headlines; never turn a generic sporting event into invented team artwork.
+ const verbs='vence|vencem|derrota|derrotam|bate|batem|empata|empatam|supera|superam';
+ const middle=text.match(new RegExp('^(.{2,50}?)\\s+(?:'+verbs+')\\s+(.{2,52}?)(?:\\s+por\\s+|\\s+na\\s+|\\s+no\\s+|\\s+ap[oó]s\\s+|$)','i'));
+ const tied=text.match(/^(.{2,50}?)\s+e\s+(.{2,50}?)\s+(?:empataram|empatam|ficaram empatados)\b/i);
+ const pair=middle?[middle[1],middle[2]]:tied?[tied[1],tied[2]]:null;
+ if(!pair)return null;
+ const names=pair.map(n=>n.trim().replace(/\s+no\s+fim$/i,''));
+ return names.every(n=>n.length>=3&&n.length<=52)?names:null;
+}
+function findKnownTeam(name){
+ const needle=normal(name);
+ if(needle.length<3)return null;
+ return knownTeams.find(t=>[t.displayName,t.shortDisplayName,t.name,t.abbreviation,t.nickname]
+  .filter(Boolean).some(alias=>normal(alias)===needle))||null;
+}
+async function loadTeamCatalogue(){
+ // Fetch verified team badges only for supported leagues; never guess image filenames.
+ const target=[['soccer','eng.1'],['soccer','por.1'],['soccer','esp.1'],['soccer','ger.1'],['soccer','ita.1'],['basketball','nba']];
+ const responses=await Promise.allSettled(target.map(async ([sport,league])=>{
+  const control=new AbortController();const timeout=setTimeout(()=>control.abort(),8000);
+  try{const url='https://site.api.espn.com/apis/site/v2/sports/'+sport+'/'+league+'/teams?limit=100';
+  const response=await fetch(url,{signal:control.signal});if(!response.ok)return;
+  const body=await response.json();
+  for(const group of body?.sports||[])for(const l of group?.leagues||[])for(const entry of l?.teams||[])addTeam(entry.team);
+  }finally{clearTimeout(timeout);}
+ }));
+ scheduleEnrich();
 }
 function artForArticle(title,container){
  if(!container)return;
  const match=all.find(e=>matchTeams(title,e));
  const names=match?[teamName(match.away),teamName(match.home)]:namesFromHeadline(title);
+ const verified=match?[match.away.team,match.home.team]:(names?names.map(findKnownTeam):[]);
  if(!names)return;
- const key=title+':'+(match?.id||'headline');
+ const key=title+':'+(match?.id||'headline')+':'+verified.map(t=>t?.id||'').join('/');
  if(container.dataset.sportsMatch===key)return;
  container.dataset.sportsMatch=key;
  container.classList.add('sports-teams-art');container.classList.remove('has-photo');
@@ -79,12 +107,14 @@ function artForArticle(title,container){
  const strip=document.createElement('div');strip.className='sports-teams-strip';
  names.forEach((name,i)=>{
   const box=document.createElement('div');box.className='sports-teams-logo';
-  const img=match?crest(i===0?match.away:match.home):null;if(img)box.append(img);
+  const logoTeam=verified[i];const badge=logoTeam?crest({team:logoTeam}):null;
+  if(badge)box.append(badge);
+  else {const monogram=document.createElement('span');monogram.className='sports-team-monogram';monogram.textContent=name.split(/\s+/).map(p=>p[0]).slice(0,2).join('').toLocaleUpperCase('pt');box.append(monogram);}
   const label=document.createElement('span');label.textContent=name;box.append(label);strip.append(box);
  });
  const separator=document.createElement('span');separator.className='sports-vs';separator.textContent='×';strip.insertBefore(separator,strip.children[1]);
  const note=document.createElement('span');note.className='sports-teams-note';
- note.textContent=match?'EMBLEMAS DAS EQUIPAS · '+match.league:'EQUIPAS REFERIDAS NA NOTÍCIA · ILUSTRAÇÃO EDITORIAL';
+ note.textContent=verified.every(Boolean)?'EMBLEMAS DAS EQUIPAS · DADOS ESPN':'EQUIPAS REFERIDAS NA NOTÍCIA · ILUSTRAÇÃO EDITORIAL';
  container.append(strip,note);container.removeAttribute('aria-hidden');
 }
 function enrichArticles(){
@@ -101,6 +131,8 @@ function scheduleEnrich(){if(enrichmentQueued)return;enrichmentQueued=true;reque
 new MutationObserver(scheduleEnrich).observe($('articles'),{childList:true,subtree:true});
 new MutationObserver(scheduleEnrich).observe($('slide-title'),{childList:true});
 scheduleEnrich();
+void loadTeamCatalogue();
+$('sports-explore').onclick=()=>{document.querySelector('[data-section="Desporto"]')?.click();document.querySelector('#categories button[aria-pressed="true"]')?.scrollIntoView({behavior:'smooth',block:'nearest'});document.getElementById('articles').scrollIntoView({behavior:'smooth'});};
 async function refresh(force=false){
  if(pending||document.hidden)return;
  if(!force&&Date.now()-lastFetch<MIN_DELAY)return;
