@@ -84,3 +84,7 @@
 .sports-showcase .sports-team strong{font-size:15px}
 .sports-showcase .sports-status{font-size:9px;margin:10px 0 0}
 @media(max-width:800px){.sports-showcase{grid-template-columns:1fr;gap:16px}.sports-showcase-copy{padding:0}.sports-showcase .sports-live{max-width:470px;margin:0 auto}}
+
+.sports-team-monogram{display:grid;place-items:center;width:66px;height:66px;border:2px solid #86a9d5;border-radius:50%;background:#234d81;color:white;font-weight:900;font-size:22px;letter-spacing:.04em}
+.sports-teams-logo .sports-team-monogram{flex:none}
+@media(max-width:720px){.sports-team-monogram{height:50px;width:50px;font-size:17px}}
