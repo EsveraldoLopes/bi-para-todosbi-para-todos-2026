@@ -63,17 +63,33 @@ function matchTeams(text,e){
   return aliases.some(n=>title.includes(n));
  });
 }
-function namesFromHeadline(title){
+function parseMatchReport(title){
  const text=String(title||'').trim();
- // Simple two-team headlines; never turn a generic sporting event into invented team artwork.
- const verbs='vence|vencem|derrota|derrotam|bate|batem|empata|empatam|supera|superam';
- const middle=text.match(new RegExp('^(.{2,50}?)\\s+(?:'+verbs+')\\s+(.{2,52}?)(?:\\s+por\\s+|\\s+na\\s+|\\s+no\\s+|\\s+ap[oó]s\\s+|$)','i'));
- const tied=text.match(/^(.{2,50}?)\s+e\s+(.{2,50}?)\s+(?:empataram|empatam|ficaram empatados)\b/i);
- const pair=middle?[middle[1],middle[2]]:tied?[tied[1],tied[2]]:null;
- if(!pair)return null;
- const names=pair.map(n=>n.trim().replace(/\s+no\s+fim$/i,''));
- return names.every(n=>n.length>=3&&n.length<=52)?names:null;
+ const score=text.match(/\b(\d{1,3})\s*[–—-]\s*(\d{1,3})\b/);
+ const draw=text.match(/^(.{2,50}?)\s+e\s+(.{2,50}?)\s+(?:empataram|empatam|ficaram empatados)\b/i);
+ if(draw){
+  const names=[draw[1].trim(),draw[2].trim()];
+  if(names.some(x=>x.length<3||x.length>52))return null;
+  const tied=text.match(/empatam\s+a\s+(um|uma|dois|duas|tr[eê]s|quatro|\d+)/i);
+  const words={um:1,uma:1,dois:2,duas:2,'três':3,tres:3,quatro:4};
+  const value=tied?(Number(tied[1])||words[normal(tied[1])]||null):null;
+  return {names,score:value===null?null:[value,value]};
+ }
+ const won=text.match(/^(.{2,50}?)\s+(?:vence|vencem|derrota|derrotam|bate|batem|supera|superam)\s+(.{2,52}?)(?=\s+por\s+|\s+na\s+|\s+no\s+|\s+ap[oó]s\s+|$)/i);
+ if(won){
+  const names=[won[1].trim(),won[2].trim()];
+  if(names.some(x=>x.length<3||x.length>52))return null;
+  return {names,score:score?[Number(score[1]),Number(score[2])]:null};
+ }
+ const lost=text.match(/^(.{2,50}?)\s+(?:perde|perdem)\s+por\s+\d{1,3}\s*[–—-]\s*\d{1,3}\s+(?:com|frente\s+a|contra)\s+(.{2,52}?)\s*$/i);
+ if(lost&&score){
+  const names=[lost[1].trim(),lost[2].trim()];
+  if(names.some(x=>x.length<3||x.length>52))return null;
+  return {names,score:[Number(score[2]),Number(score[1])]};
+ }
+ return null;
 }
+function namesFromHeadline(title){return parseMatchReport(title)?.names||null;}
 function findKnownTeam(name){
  const needle=normal(name);
  if(needle.length<3)return null;
@@ -98,8 +114,9 @@ function artForArticle(title,container){
  // A licensed, credited real photo takes precedence over generated team graphics.
  if(container.dataset.editorialPhoto==='true')return;
  const match=all.find(e=>matchTeams(title,e));
- const names=match?[teamName(match.away),teamName(match.home)]:namesFromHeadline(title);
- const verified=match?[match.away.team,match.home.team]:(names?names.map(findKnownTeam):[]);
+ const report=parseMatchReport(title);
+ const names=report?.names||(match?[teamName(match.away),teamName(match.home)]:null);
+ const verified=names?names.map(findKnownTeam):[];
  if(!names)return;
  const key=title+':'+(match?.id||'headline')+':'+verified.map(t=>t?.id||'').join('/');
  if(container.dataset.sportsMatch===key)return;
@@ -114,9 +131,12 @@ function artForArticle(title,container){
   else {const monogram=document.createElement('span');monogram.className='sports-team-monogram';monogram.textContent=name.split(/\s+/).map(p=>p[0]).slice(0,2).join('').toLocaleUpperCase('pt');box.append(monogram);}
   const label=document.createElement('span');label.textContent=name;box.append(label);strip.append(box);
  });
- const separator=document.createElement('span');separator.className='sports-vs';separator.textContent='×';strip.insertBefore(separator,strip.children[1]);
+ const separator=document.createElement('span');separator.className='sports-vs';
+ separator.textContent=report?.score?report.score.join(' – '):'×';
+ if(report?.score)separator.classList.add('sports-result-score');
+ strip.insertBefore(separator,strip.children[1]);
  const note=document.createElement('span');note.className='sports-teams-note';
- note.textContent=verified.every(Boolean)?'EMBLEMAS DAS EQUIPAS · DADOS ESPN':'EQUIPAS REFERIDAS NA NOTÍCIA · ILUSTRAÇÃO EDITORIAL';
+ note.textContent=report?.score?'RESULTADO INDICADO NO TÍTULO · ILUSTRAÇÃO EDITORIAL':verified.every(Boolean)?'EMBLEMAS DAS EQUIPAS · DADOS ESPN':'EQUIPAS REFERIDAS NA NOTÍCIA · ILUSTRAÇÃO EDITORIAL';
  container.append(strip,note);container.removeAttribute('aria-hidden');
 }
 function enrichArticles(){
