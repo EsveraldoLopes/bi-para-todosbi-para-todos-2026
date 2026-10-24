@@ -22,6 +22,49 @@ $('back-all').onclick=()=>selectSection('Todas');
 const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 function safeUrl(value){try{const u=new URL(value);return u.protocol==='https:'?u.href:null;}catch{return null;}}
 
+// Curated licensed photographs depicting the actual club, NOT the reported match.
+// They replace repeated generic stock pictures until match-specific rights are secured.
+const sportsPhotoLibrary={
+ 'ca87701f-6823-4ea8-bda5-87029c8ee646':{
+  url:'https://upload.wikimedia.org/wikipedia/commons/9/9e/Nottingham_Forest_Players_22122025_%281%29.jpg',
+  credit:'Timmy96 / Wikimedia Commons · CC0', source:'https://commons.wikimedia.org/wiki/File:Nottingham_Forest_Players_22122025_(1).jpg',
+  alt:'Jogadores do Nottingham Forest em campo num encontro anterior',
+  caption:'Fotografia de arquivo do Nottingham Forest num jogo frente ao Fulham em 22/12/2025; não retrata o empate com o Ipswich. CC0.'
+ },
+ '3deb2fd4-66f1-4bee-abe4-08ba99257171':{
+  url:'https://upload.wikimedia.org/wikipedia/commons/9/90/Benfica_celebrating.jpg',
+  credit:'Alface / Wikimedia Commons · CC BY-SA 3.0',source:'https://commons.wikimedia.org/wiki/File:Benfica_celebrating.jpg',
+  alt:'Jogadores do Benfica celebram um golo numa partida anterior',
+  caption:'Fotografia de arquivo do Benfica frente ao Rio Ave em 2011; não representa o jogo com o Omonia. CC BY-SA 3.0.'
+ },
+ 'bc675e3f-53d3-4292-ae8e-f19748791df0':{
+  url:'https://upload.wikimedia.org/wikipedia/commons/4/4e/Oklahoma_City_Thunder_%285528423584%29.jpg',
+  credit:'Keith Allison / Wikimedia Commons · CC BY-SA 2.0',source:'https://commons.wikimedia.org/wiki/File:Oklahoma_City_Thunder_(5528423584).jpg',
+  alt:'Equipa Oklahoma City Thunder durante um jogo de basquetebol anterior',
+  caption:'Fotografia de arquivo dos Oklahoma City Thunder frente aos Wizards em 14/03/2011; não representa o jogo com os Nuggets. CC BY-SA 2.0.'
+ },
+ 'b6258a6a-f536-4f4e-be1d-b30e8833156f':{
+  url:'https://upload.wikimedia.org/wikipedia/commons/c/c2/AFC_Bournemouth.jpg',
+  credit:'Ungry Young Man / Wikimedia Commons · CC BY 2.0',source:'https://commons.wikimedia.org/wiki/File:AFC_Bournemouth.jpg',
+  alt:'Equipa do AFC Bournemouth num encontro de futebol anterior',
+  caption:'Fotografia de arquivo do AFC Bournemouth frente ao Wigan Athletic em 2018; não representa o confronto com o Milan. CC BY 2.0.'
+ },
+ 'df4b45a0-ebbc-4496-9534-680a9b8c5627':{
+  url:'https://upload.wikimedia.org/wikipedia/commons/f/fa/SC_Braga_2011.jpg',
+  credit:'Roger Gorączniak / Wikimedia Commons · CC BY 3.0',source:'https://commons.wikimedia.org/wiki/File:SC_Braga_2011.jpg',
+  alt:'Jogadores do Sporting Clube de Braga em fotografia de equipa',
+  caption:'Fotografia de arquivo da equipa do SC Braga em 2011 antes de um jogo com o Lech Poznań; não representa o confronto com o Gent. CC BY 3.0.'
+ }
+};
+function useCuratedSportsPhoto(article){
+ if(article.category!=='Desporto'||!article.id)return article;
+ const photo=sportsPhotoLibrary[article.id];
+ if(!photo)return article;
+ // Never replace a new independently selected editorial image.
+ const generic=article.image_url&&(/photo-1771344164616-3582e4dc2f07|photo-1549210194-fb0aac030c32/.test(article.image_url));
+ if(!generic)return article;
+ return {...article,image_url:photo.url,image_alt:photo.alt,image_caption:photo.caption,image_credit:photo.credit,image_source_url:photo.source};
+}
 function imageUrl(value){const url=safeUrl(value);if(!url)return null;const u=new URL(url);return ['images.unsplash.com','images.pexels.com','upload.wikimedia.org'].includes(u.hostname)?u:null;}
 function articleImage(article,eager=false){const url=imageUrl(article.image_url);if(!url)return null;const img=document.createElement('img');img.src=url.href;img.alt=article.image_alt||'Imagem relacionada com a notícia';img.loading=eager?'eager':'lazy';img.decoding='async';img.width=1200;img.height=800;img.referrerPolicy='no-referrer';if(eager)img.fetchPriority='high';return img;}
 function readerImage(article){const fig=$('reader-image');fig.replaceChildren();const img=articleImage(article,true);fig.hidden=!img;if(!img)return;img.addEventListener('error',()=>{fig.hidden=true;},{once:true});const cap=document.createElement('figcaption');cap.textContent=article.image_caption||(article.image_credit?'Fotografia editorial':'Imagem ilustrativa.');if(article.image_credit){cap.append(' · ');const source=safeUrl(article.image_source_url);const credit=document.createElement(source?'a':'span');credit.textContent=article.image_credit;if(source){credit.href=source;credit.target='_blank';credit.rel='noopener noreferrer';}cap.append(credit);}fig.append(img,cap);}
@@ -44,7 +87,7 @@ function openArticle(article){if(!article.demo)void trackView(article.id);relate
 function render(){const q=normalize($('search').value);const filtered=articles.filter(a=>(selected==='Todas'||a.category===selected)&&normalize(`${a.title} ${a.summary} ${a.category}`).includes(q));updateSectionUI(filtered.length);$('articles').replaceChildren();$('empty').hidden=loading||filtered.length>0;$('show-all').hidden=filtered.length<=6||showAll;const ordered=selected==='Todas'&&!q?[...filtered.filter(isLeadArticle),...filtered.filter(a=>!isLeadArticle(a))]:filtered;const visible=showAll?ordered:ordered.slice(0,6);visible.forEach((a,i)=>{const card=document.createElement('article');card.className='article';const art=document.createElement('div');art.className='art tone'+(sections.indexOf(a.category)%6);art.setAttribute('aria-hidden','true');const icon=document.createElement('span');icon.className='art-symbol';icon.textContent=({Angola:'AO',Mundo:'↗',Diáspora:'↔',Desporto:'◎',Tecnologia:'✳',Oportunidades:'+'})[a.category]||'↗';art.append(icon);const label=document.createElement('span');label.className='label';label.textContent=a.category.toUpperCase();const number=document.createElement('span');number.className='number';number.textContent='NPT / '+String(i+1).padStart(2,'0');art.append(label,number);art.dataset.editorialPhoto=a.image_url&&a.image_credit&&a.image_source_url?'true':'false';const photo=articleImage(a,i===0);if(photo){art.classList.add('has-photo');art.removeAttribute('aria-hidden');const badge=document.createElement('span');badge.className='photo-badge';badge.textContent=a.image_credit?'FOTOGRAFIA · '+a.image_credit:'IMAGEM EDITORIAL';art.append(photo,badge);photo.addEventListener('error',()=>{photo.remove();badge.remove();art.classList.remove('has-photo');art.setAttribute('aria-hidden','true');},{once:true});}const category=document.createElement('p');category.className='eyebrow';category.textContent=a.category;const h=document.createElement('h3');const b=document.createElement('button');b.textContent=a.title;b.onclick=()=>openArticle(a);h.append(b);const summary=document.createElement('p');summary.textContent=a.summary;const meta=document.createElement('span');meta.className='meta';meta.textContent=a.demo?'APRESENTAÇÃO EDITORIAL':'PUBLICADO · '+new Date(a.published_at).toLocaleDateString('pt-PT');card.append(art,category,h,summary,meta);$('articles').append(card);});}
 function fromHash(){if(location.hash.startsWith('#artigo=')){try{const id=decodeURIComponent(location.hash.slice(8));const a=articles.find(x=>String(x.id)===id);if(a)openArticle(a);}catch{}}}
 $('search').addEventListener('input',()=>{showAll=false;render();});$('show-all').onclick=()=>{showAll=true;render();};$('close-reader').onclick=()=>reader.close();window.addEventListener('hashchange',fromHash);render();
-async function load(){const cfg=window.PORTAL_CONFIG||{};if(!cfg.supabaseUrl||!cfg.supabaseAnonKey){$('notice').textContent='Os artigos abaixo apresentam a linha editorial. Não são notícias de atualidade.';setSlides();fromHash();return;}try{const base=safeUrl(cfg.supabaseUrl);if(!base)throw Error('URL inválida');const url=new URL('/rest/v1/articles',base);url.search=new URLSearchParams({select:'id,title,summary,body,category,author,source_url,published_at,image_url,image_alt,image_credit,image_source_url,image_caption',published:'eq.true',published_at:'lte.'+new Date().toISOString(),order:'published_at.desc',limit:'60'});const res=await fetch(url,{headers:{apikey:cfg.supabaseAnonKey,...(cfg.supabaseAnonKey.startsWith('sb_publishable_')?{}:{Authorization:'Bearer '+cfg.supabaseAnonKey})},signal:AbortSignal.timeout(10000)});if(!res.ok)throw Error('Falha de leitura');const rows=await res.json();loading=false;articles=rows.filter(a=>a.id&&typeof a.title==='string'&&typeof a.summary==='string'&&typeof a.body==='string'&&sections.includes(a.category)&&a.category!=='Todas'&&Number.isFinite(Date.parse(a.published_at)));$('notice').textContent=articles.length?'Artigos publicados pela redação. Consulte as fontes no final de cada leitura.':'A redação está a preparar as primeiras notícias. Volte em breve.';render();setSlides();fromHash();}catch{loading=false;articles=examples;render();setSlides();$('notice').textContent='Não foi possível carregar as notícias. Mostramos apenas a apresentação editorial. Tente novamente mais tarde.';fromHash();}}
+async function load(){const cfg=window.PORTAL_CONFIG||{};if(!cfg.supabaseUrl||!cfg.supabaseAnonKey){$('notice').textContent='Os artigos abaixo apresentam a linha editorial. Não são notícias de atualidade.';setSlides();fromHash();return;}try{const base=safeUrl(cfg.supabaseUrl);if(!base)throw Error('URL inválida');const url=new URL('/rest/v1/articles',base);url.search=new URLSearchParams({select:'id,title,summary,body,category,author,source_url,published_at,image_url,image_alt,image_credit,image_source_url,image_caption',published:'eq.true',published_at:'lte.'+new Date().toISOString(),order:'published_at.desc',limit:'60'});const res=await fetch(url,{headers:{apikey:cfg.supabaseAnonKey,...(cfg.supabaseAnonKey.startsWith('sb_publishable_')?{}:{Authorization:'Bearer '+cfg.supabaseAnonKey})},signal:AbortSignal.timeout(10000)});if(!res.ok)throw Error('Falha de leitura');const rows=await res.json();loading=false;articles=rows.filter(a=>a.id&&typeof a.title==='string'&&typeof a.summary==='string'&&typeof a.body==='string'&&sections.includes(a.category)&&a.category!=='Todas'&&Number.isFinite(Date.parse(a.published_at))).map(useCuratedSportsPhoto);$('notice').textContent=articles.length?'Artigos publicados pela redação. Consulte as fontes no final de cada leitura.':'A redação está a preparar as primeiras notícias. Volte em breve.';render();setSlides();fromHash();}catch{loading=false;articles=examples;render();setSlides();$('notice').textContent='Não foi possível carregar as notícias. Mostramos apenas a apresentação editorial. Tente novamente mais tarde.';fromHash();}}
 
 // Carousel uses the full published edition; it pauses during reading and keyboard interaction.
 let slides=[],slideIndex=0,slideTimer=null;
