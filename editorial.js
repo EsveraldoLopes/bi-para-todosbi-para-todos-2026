@@ -72,7 +72,6 @@ async function load(){
 for(const id of ['search','status-filter','category-filter'])$(id).addEventListener('input',renderList);
 
 $('login-form').onsubmit=async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error){notify('Credenciais inválidas ou sessão indisponível.');return;}if(!(await isAdmin())){await db.auth.signOut();notify('Conta sem autorização administrativa.');return;}$('password').value='';await refresh();}catch{notify('Erro de ligação. Tente novamente.');}finally{btn.disabled=false;}};
-$('logout').onclick=async()=>{await db.auth.signOut();
 let adCurrentId=null,adCampaigns=[];
 const adFields={advertiser:'ad-advertiser',title:'ad-title',placement:'ad-placement',start_date:'ad-start',end_date:'ad-end',status:'ad-status',destination_url:'ad-destination',image_url:'ad-image',amount_eur:'ad-amount',notes:'ad-notes'};
 function adNotify(text){$('ad-message').textContent=text;}
@@ -130,7 +129,7 @@ $('ad-campaign-form').onsubmit=async event=>{
 };
 adClear();
 
-clearForm();await refresh();};
+$('logout').onclick=async()=>{await db.auth.signOut();clearForm();await refresh();};
 $('reload').onclick=load;$('new').onclick=clearForm;$('reset').onclick=clearForm;
 $('article-form').onsubmit=async e=>{e.preventDefault();const btn=$('save');btn.disabled=true;try{
 if(!(await isAdmin())){notify('Sessão sem autorização.');return;}
