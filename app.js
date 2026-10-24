@@ -25,6 +25,25 @@ function safeUrl(value){try{const u=new URL(value);return u.protocol==='https:'?
 // Curated licensed photographs depicting the actual club, NOT the reported match.
 // They replace repeated generic stock pictures until match-specific rights are secured.
 const sportsPhotoLibrary={
+ '00b58532-b1c5-4e44-86bb-5453c5d54525':{
+  url:'https://upload.wikimedia.org/wikipedia/commons/d/db/Chicago_Bulls.jpg',
+  credit:'WesleyCV / Wikimedia Commons · CC BY-SA 3.0',source:'https://commons.wikimedia.org/wiki/File:Chicago_Bulls.jpg',
+  alt:'Jogadores dos Chicago Bulls numa fotografia de arquivo da equipa',
+  caption:'Fotografia de arquivo dos Chicago Bulls (2013); não representa o confronto com os Bucks. CC BY-SA 3.0. Sem alterações à fotografia original, além do enquadramento visual.'
+ },
+ '91fdeb98-758c-40d3-a6a3-854e13311fd2':{
+  url:'https://upload.wikimedia.org/wikipedia/commons/3/37/20101025_Philadelphia_76ers.jpg',
+  credit:'Philadelphia 76ers / Wikimedia Commons · CC BY-SA 2.0',source:'https://commons.wikimedia.org/wiki/File:20101025_Philadelphia_76ers.jpg',
+  alt:'Equipa Philadelphia 76ers em fotografia de arquivo de 2010',
+  caption:'Fotografia de arquivo dos Philadelphia 76ers de 2010; não representa o confronto com Cleveland. CC BY-SA 2.0.'
+ },
+ '45cf6e2f-76b3-43b9-b45b-a5c7afc8e967':{
+  url:'https://upload.wikimedia.org/wikipedia/commons/0/05/Ferencv%C3%A1ros_starting_11_2026_Magyar_Kupa_final.jpg',
+  credit:'Rakeck / Wikimedia Commons · CC BY-SA 4.0',source:'https://commons.wikimedia.org/wiki/File:Ferencv%C3%A1ros_starting_11_2026_Magyar_Kupa_final.jpg',
+  alt:'Jogadores do Ferencváros alinhados antes de uma final da Taça da Hungria em 2026',
+  caption:'Fotografia de arquivo do Ferencváros na final da Taça da Hungria em maio de 2026; não representa o confronto com o Torreense. CC BY-SA 4.0.'
+ },
+
  'ca87701f-6823-4ea8-bda5-87029c8ee646':{
   url:'https://upload.wikimedia.org/wikipedia/commons/9/9e/Nottingham_Forest_Players_22122025_%281%29.jpg',
   credit:'Timmy96 / Wikimedia Commons · CC0', source:'https://commons.wikimedia.org/wiki/File:Nottingham_Forest_Players_22122025_(1).jpg',
