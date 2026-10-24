@@ -83,7 +83,7 @@ function parseMatchReport(title){
  }
  const lost=text.match(/^(.{2,50}?)\s+(?:perde|perdem)\s+por\s+\d{1,3}\s*[–—-]\s*\d{1,3}\s+(?:com|frente\s+a|contra)\s+(.{2,52}?)\s*$/i);
  if(lost&&score){
-  const names=[lost[1].trim(),lost[2].trim()];
+  const names=[lost[1].trim(),lost[2].trim().replace(/^(?:o|a|os|as)\s+/i,'')];
   if(names.some(x=>x.length<3||x.length>52))return null;
   return {names,score:[Number(score[2]),Number(score[1])]};
  }
@@ -93,8 +93,18 @@ function namesFromHeadline(title){return parseMatchReport(title)?.names||null;}
 function findKnownTeam(name){
  const needle=normal(name);
  if(needle.length<3)return null;
+ const knownAliases={
+  'philadelphia':'philadelphia 76ers','cleveland':'cleveland cavaliers',
+  'thunder':'oklahoma city thunder','nuggets':'denver nuggets',
+  'bulls':'chicago bulls','bucks':'milwaukee bucks',
+  'benfica':'sl benfica','braga':'sc braga',
+  'nottingham forest':'nottingham forest','ipswich':'ipswich town',
+  'ferencvaros':'ferencvarosi tc','bournemouth':'afc bournemouth',
+  'milan':'ac milan','gent':'kaa gent','omonia':'omonia nicosia'
+ };
+ const canonical=knownAliases[needle]||needle;
  return knownTeams.find(t=>[t.displayName,t.shortDisplayName,t.name,t.abbreviation,t.nickname]
-  .filter(Boolean).some(alias=>normal(alias)===needle))||null;
+  .filter(Boolean).some(alias=>normal(alias)===needle||normal(alias)===canonical))||null;
 }
 async function loadTeamCatalogue(){
  // Fetch verified team badges only for supported leagues; never guess image filenames.
