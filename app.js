@@ -32,6 +32,13 @@ const repeatedStockSportPhoto=/photo-1771344164616-3582e4dc2f07|photo-1549210194
 // Never label archival photos as depicting the result in this article.
 const sportsSelectedTeamPhotos={
 
+ 'df4b45a0-ebbc-4496-9534-680a9b8c5627':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/0/0a/Ricardo_Horta_USMNT_v_Portugal_Mar_31_2026-24.jpg',
+  image_alt:'Ricardo Horta, futebolista do SC Braga, com equipamento da seleção portuguesa em março de 2026',
+  image_credit:'Bryan Berlin / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2026',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Ricardo_Horta_USMNT_v_Portugal_Mar_31_2026-24.jpg',
+  image_caption:'Foto de arquivo do jogador do SC Braga Ricardo Horta com Portugal frente aos Estados Unidos em 31 de março de 2026; NÃO retrata o jogo Braga–Gent. Bryan Berlin / Wikimedia Commons, CC BY-SA 4.0; enquadramento adaptado.'
+ },
  'b6258a6a-f536-4f4e-be1d-b30e8833156f':{
   image_url:'https://upload.wikimedia.org/wikipedia/commons/e/e6/Elenco_do_Bournemouth_abra%C3%A7ados_ap%C3%B3s_gol_de_Rayan.jpg',
   image_alt:'Jogadores do Bournemouth abraçados a celebrar um golo numa partida da Premier League em fevereiro de 2026',
