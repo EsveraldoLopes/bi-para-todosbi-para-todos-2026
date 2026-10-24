@@ -32,6 +32,13 @@ const repeatedStockSportPhoto=/photo-1771344164616-3582e4dc2f07|photo-1549210194
 // Never label archival photos as depicting the result in this article.
 const sportsSelectedTeamPhotos={
 
+ '58aee1c1-391b-4e7c-94ce-8d860d6369f7':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/4/42/Europa_league_trophy.jpg',
+  image_alt:'Troféu da Liga Europa em exposição no Museu do Liverpool',
+  image_credit:'Damine178 / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2022',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Europa_league_trophy.jpg',
+  image_caption:'Fotografia ilustrativa do troféu da Liga Europa numa exposição no museu do Liverpool, maio de 2022. Não retrata jogos da jornada atual. Damine178 / Wikimedia Commons, CC BY-SA 4.0; enquadramento adaptado.'
+ },
  'df4b45a0-ebbc-4496-9534-680a9b8c5627':{
   image_url:'https://upload.wikimedia.org/wikipedia/commons/0/0a/Ricardo_Horta_USMNT_v_Portugal_Mar_31_2026-24.jpg',
   image_alt:'Ricardo Horta, futebolista do SC Braga, com equipamento da seleção portuguesa em março de 2026',
