@@ -26,3 +26,71 @@
 .ad-live-copy span{display:block}
 .ad-live-image{width:150px;max-height:110px;object-fit:contain;border-radius:8px;background:#fff}
 @media(max-width:500px){.ad-live-image{width:100%;max-height:150px}.ad-live-copy{gap:12px}}
+
+/* Daily real-data sports centre */
+.sports-live{margin:26px 0 44px;background:#fff;border:1px solid #dce4ef;border-radius:18px;padding:26px;box-shadow:0 12px 30px #12223c08}
+.sports-live-heading{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}
+.sports-live-heading h2{font-size:clamp(23px,2.4vw,36px);letter-spacing:-1px;line-height:1.2;margin:4px 0 8px}
+.sports-live-heading p:not(.eyebrow){font-size:13px;color:var(--muted);margin:0}
+.sports-live-dot{color:#e34b4b;font-size:.53em;vertical-align:middle}
+#sports-refresh{color:#fff;background:var(--navy);border:0;border-radius:8px;padding:12px 16px;font-size:12px;font-weight:700}
+.sports-live-filters{display:flex;flex-wrap:wrap;gap:8px;padding:20px 0 18px}
+.sports-live-filters button{border:1px solid #dce4ef;background:#f3f6fb;color:#233451;border-radius:100px;padding:8px 13px;font-size:12px}
+.sports-live-filters button[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff}
+.sports-scores{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.sports-scores>p{color:var(--muted)}
+.sports-game{border-radius:12px;background:#f7f9fd;border:1px solid #dfe6f0;padding:15px 16px;min-width:0}
+.sports-game-top{display:flex;justify-content:space-between;gap:12px;align-items:center;color:#596781;font-size:10px;font-weight:700;letter-spacing:.02em;margin-bottom:12px}
+.sports-live-now{background:#fce9e6;color:#bc2d20;padding:4px 8px;border-radius:6px;font-weight:800}
+.sports-game-status{font-weight:700}
+.sports-matchup{display:grid;gap:8px}
+.sports-team{display:flex;align-items:center;gap:10px;font-size:13px;min-width:0}
+.sports-team img{width:25px;height:25px;object-fit:contain}
+.sports-team span{flex:1;overflow-wrap:anywhere}
+.sports-team strong{font-size:18px;color:var(--navy);font-variant-numeric:tabular-nums}
+.sports-status{font-size:11px;color:var(--muted);margin:16px 0 0}
+.art.sports-teams-art{background:linear-gradient(125deg,#10223c,#1b4d82);color:white;isolation:isolate;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px}
+.art.sports-teams-art:before,.art.sports-teams-art:after,.art.sports-teams-art>.art-symbol{display:none}
+.sports-teams-strip{display:flex;justify-content:space-around;align-items:center;gap:16px;width:100%}
+.sports-teams-logo{display:flex;flex:1;min-width:0;align-items:center;flex-direction:column;gap:8px;text-align:center;font-size:12px;font-weight:800;line-height:1.25}
+.sports-teams-logo img{display:block;width:66px;height:66px;max-width:100%;object-fit:contain;position:static;transform:none}
+.sports-vs{font-size:28px;font-weight:900;color:#ffd184}
+.sports-teams-note{font-size:9px;text-transform:uppercase;letter-spacing:.09em;opacity:.78;text-align:center}
+.carousel-backdrop.sports-teams-art{height:100%}
+.carousel-backdrop.sports-teams-art>.sports-teams-strip{padding:30px 26px 0;align-self:center}
+.carousel-backdrop.sports-teams-art>.sports-teams-note{padding:0 20px}
+.carousel-backdrop.sports-teams-art:after{pointer-events:none}
+.carousel-backdrop.sports-teams-art img{width:72px;height:72px;opacity:1}
+@media(max-width:720px){.sports-scores{grid-template-columns:1fr}.sports-live{padding:18px}.sports-live-heading{align-items:flex-start}.sports-teams-logo img{width:50px;height:50px}}
+
+/* A5-like compact results desk, right-aligned beside sports editorial copy. */
+.sports-showcase{display:grid;grid-template-columns:minmax(0,1fr) minmax(310px,430px);gap:32px;align-items:start;margin:38px 0 50px}
+.sports-showcase-copy{padding:30px 12px 0 4px;max-width:460px}
+.sports-showcase-copy h2{font-size:clamp(28px,3.6vw,52px);line-height:1.1;letter-spacing:-2px;margin:14px 0}
+.sports-showcase-copy>p:not(.eyebrow){color:var(--muted);font-size:15px;line-height:1.8}
+#sports-explore{border:0;border-bottom:1px solid #14223b;padding:9px 0;background:none;font-weight:700;color:var(--navy)}
+.sports-showcase .sports-live{width:100%;height:510px;max-height:510px;min-height:0;margin:0;padding:18px 17px;display:flex;flex-direction:column;overflow:hidden}
+.sports-showcase .sports-live-heading h2{font-size:22px;letter-spacing:-.6px}
+.sports-showcase .sports-live-heading p:not(.eyebrow){font-size:11px}
+.sports-showcase .sports-live-heading{gap:8px}
+.sports-showcase #sports-refresh{font-size:10px;padding:7px 9px}
+.sports-showcase .sports-live-filters{gap:5px;padding:12px 0}
+.sports-showcase .sports-live-filters button{font-size:10px;padding:6px 9px}
+.sports-showcase .sports-scores{display:flex;flex-direction:column;gap:8px;flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;padding-right:5px;overscroll-behavior:contain}
+.sports-showcase .sports-game{padding:10px 12px}
+.sports-showcase .sports-game-top{font-size:9px;margin-bottom:7px}
+.sports-showcase .sports-team{font-size:12px;gap:8px}
+.sports-showcase .sports-team img{height:23px;width:23px}
+.sports-showcase .sports-team strong{font-size:15px}
+.sports-showcase .sports-status{font-size:9px;margin:10px 0 0}
+@media(max-width:800px){.sports-showcase{grid-template-columns:1fr;gap:16px}.sports-showcase-copy{padding:0}.sports-showcase .sports-live{max-width:470px;margin:0 auto}}
+
+.sports-team-monogram{display:grid;place-items:center;width:66px;height:66px;border:2px solid #86a9d5;border-radius:50%;background:#234d81;color:white;font-weight:900;font-size:22px;letter-spacing:.04em}
+.sports-teams-logo .sports-team-monogram{flex:none}
+@media(max-width:720px){.sports-team-monogram{height:50px;width:50px;font-size:17px}}
+
+/* Match-result editorial graphics, never represented as photos of a played match. */
+.art.sports-teams-art .sports-result-score{font-size:clamp(24px,3vw,38px);font-weight:900;color:#ffe7a6;white-space:nowrap;letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.carousel-backdrop.sports-teams-art .sports-result-score{font-size:clamp(21px,3vw,35px)}
+.sports-teams-art .sports-teams-logo span:not(.sports-team-monogram){font-size:clamp(12px,1.15vw,17px);font-weight:800;overflow-wrap:anywhere;text-align:center}
+@media(max-width:600px){.art.sports-teams-art .sports-result-score{font-size:22px}.sports-teams-strip{gap:7px}.sports-teams-art .sports-teams-logo span:not(.sports-team-monogram){font-size:12px}}

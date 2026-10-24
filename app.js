@@ -22,9 +22,99 @@ $('back-all').onclick=()=>selectSection('Todas');
 const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 function safeUrl(value){try{const u=new URL(value);return u.protocol==='https:'?u.href:null;}catch{return null;}}
 
-function imageUrl(value){const url=safeUrl(value);if(!url)return null;const u=new URL(url);return u.hostname==='images.unsplash.com'?u:null;}
-function articleImage(article,eager=false){const url=imageUrl(article.image_url);if(!url)return null;const img=document.createElement('img');img.src=url.href;img.alt=article.image_alt||'Imagem ilustrativa do tema da notícia';img.loading=eager?'eager':'lazy';img.decoding='async';img.width=1200;img.height=800;img.referrerPolicy='no-referrer';if(eager)img.fetchPriority='high';return img;}
-function readerImage(article){const fig=$('reader-image');fig.replaceChildren();const img=articleImage(article,true);fig.hidden=!img;if(!img)return;img.addEventListener('error',()=>{fig.hidden=true;},{once:true});const cap=document.createElement('figcaption');cap.textContent=article.image_caption||'Imagem ilustrativa.';if(article.image_credit){cap.append(' · ');const source=safeUrl(article.image_source_url);const credit=document.createElement(source?'a':'span');credit.textContent=article.image_credit;if(source){credit.href=source;credit.target='_blank';credit.rel='noopener noreferrer';}cap.append(credit);}fig.append(img,cap);}
+// Curated licensed photographs depicting the actual club, NOT the reported match.
+// They replace repeated generic stock pictures until match-specific rights are secured.
+// Do not substitute historic team photographs for the event being reported.
+// Editorial photos are kept only when selected for the article by the editor.
+// The sports presentation module builds matchup graphics for match reports.
+const repeatedStockSportPhoto=/photo-1771344164616-3582e4dc2f07|photo-1549210194-fb0aac030c32/;
+// Carefully verified archive: same two teams, but a different match.
+// Never label archival photos as depicting the result in this article.
+// Only photographs taken during competitive matches may illustrate result stories.
+// A photograph from a different match is explicitly marked as archive in its caption.
+// No training sessions, portraits or press presentations.
+const sportsSelectedTeamPhotos={ 
+ 'ca87701f-6823-4ea8-bda5-87029c8ee646':{
+  image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Marcelino_Nunez.png',
+  image_alt:'Marcelino Núñez com a camisola do Ipswich Town em fotografia de 2025',
+  image_credit:'MilesaMFC / Wikimedia Commons · CC0 · Arquivo 2025',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Marcelino_Nunez.png',
+  image_caption:'Marcelino Núñez ao serviço do Ipswich Town em 2025; imagem de arquivo, não retrata o encontro com Nottingham Forest. CC0.'
+ },
+ '3deb2fd4-66f1-4bee-abe4-08ba99257171':{
+  image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Benfica-campeao-supertaca-2025.jpg',
+  image_alt:'Jogadores do Benfica celebram a Supertaça de 2025',
+  image_credit:'Sport Lisboa e Benfica / Wikimedia Commons · CC BY 3.0 · Arquivo 2025',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Benfica-campeao-supertaca-2025.jpg',
+  image_caption:'Equipa do Benfica campeã da Supertaça de 2025. Imagem de arquivo, não do confronto com o Omonia. Sport Lisboa e Benfica / Wikimedia Commons, CC BY 3.0.'
+ },
+ 'bc675e3f-53d3-4292-ae8e-f19748791df0':{
+  image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Grizzlies_vs._Thunder%2C_March_2025.png',
+  image_alt:'Shai Gilgeous-Alexander dos Oklahoma City Thunder a lançar um lance livre frente aos Memphis Grizzlies, em março de 2025',
+  image_credit:'Young Ru Finch / Wikimedia Commons · CC BY 3.0 · Arquivo 2025',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Grizzlies_vs._Thunder,_March_2025.png',
+  image_caption:'Shai Gilgeous-Alexander em ação pelos Thunder frente aos Grizzlies em março de 2025. Não é o jogo com os Nuggets. Young Ru Finch / Wikimedia Commons, CC BY 3.0; imagem reenquadrada.'
+ },
+ 'df4b45a0-ebbc-4496-9534-680a9b8c5627':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/f/fa/SC_Braga_2011.jpg',
+  image_alt:'Equipa de futebol do Sporting de Braga em 2011',
+  image_credit:'Roger Gorączniak / Wikimedia Commons · CC BY 3.0 · Arquivo',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:SC_Braga_2011.jpg',
+  image_caption:'Fotografia de arquivo do SC Braga, de 2011; não é do jogo frente ao Gent. CC BY 3.0.'
+ },
+ '45cf6e2f-76b3-43b9-b45b-a5c7afc8e967':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/0/05/Ferencv%C3%A1ros_starting_11_2026_Magyar_Kupa_final.jpg',
+  image_alt:'Jogadores do Ferencváros antes da final da Taça da Hungria de 2026',
+  image_credit:'Rakeck / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2026',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Ferencv%C3%A1ros_starting_11_2026_Magyar_Kupa_final.jpg',
+  image_caption:'Arquivo do Ferencváros em maio de 2026, na final da Taça da Hungria; não representa a partida frente ao Torreense. CC BY-SA 4.0.'
+ },
+ '91fdeb98-758c-40d3-a6a3-854e13311fd2':{
+  image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/1_tyrese_maxey_2026_%28cropped%29.jpg?width=1200',
+  image_alt:'Tyrese Maxey com equipamento dos Philadelphia 76ers durante um jogo da NBA em abril de 2026',
+  image_credit:'Chensiyuan / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2026',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:1_tyrese_maxey_2026_(cropped).jpg',
+  image_caption:'Tyrese Maxey dos Philadelphia 76ers, em abril de 2026. Fotografia de arquivo, não do encontro com Cleveland. Chensiyuan / Wikimedia Commons, CC BY-SA 4.0; versão recortada.'
+ },
+ '58aee1c1-391b-4e7c-94ce-8d860d6369f7':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/f/f8/2011_UEFA_Europa_League_trophy_at_Museu_FC_Porto.jpg',
+  image_alt:'Troféu da Liga Europa da UEFA exposto no Museu FC Porto',
+  image_credit:'Threeohsix / Wikimedia Commons · CC BY-SA 4.0',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:2011_UEFA_Europa_League_trophy_at_Museu_FC_Porto.jpg',
+  image_caption:'Imagem ilustrativa do troféu da Liga Europa exposto no Museu FC Porto; não documenta os jogos referidos no artigo. CC BY-SA 4.0.'
+ },
+
+ 'b6258a6a-f536-4f4e-be1d-b30e8833156f':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/e/e6/Elenco_do_Bournemouth_abra%C3%A7ados_ap%C3%B3s_gol_de_Rayan.jpg',
+  image_alt:'Jogadores do Bournemouth abraçados a celebrar um golo durante um jogo da Premier League em fevereiro de 2026',
+  image_credit:'AFC Bournemouth / Wikimedia Commons · CC BY 4.0 · Arquivo 2026',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Elenco_do_Bournemouth_abra%C3%A7ados_ap%C3%B3s_gol_de_Rayan.jpg',
+  image_caption:'Fotografia de ação de um jogo do Bournemouth em 8 de fevereiro de 2026; NÃO representa a partida com o Milan. AFC Bournemouth / Wikimedia Commons, CC BY 4.0; enquadramento adaptado.'
+ }
+};
+const sportsSpecificArchives={
+ '00b58532-b1c5-4e44-86bb-5453c5d54525':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Chicago_Bulls_vs._Milwaukee_Bucks_April_2023_34_%28in-game_action%29.jpg/1280px-Chicago_Bulls_vs._Milwaukee_Bucks_April_2023_34_%28in-game_action%29.jpg',
+  image_alt:'Chicago Bulls e Milwaukee Bucks em campo num jogo disputado em abril de 2023',
+  image_credit:'Michael Barera / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2023',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Chicago_Bulls_vs._Milwaukee_Bucks_April_2023_34_(in-game_action).jpg',
+  image_caption:'Fotografia de arquivo de Bulls contra Bucks, em 5 de abril de 2023 (105–92). NÃO representa o jogo 132–125 desta notícia. Michael Barera / Wikimedia Commons, CC BY-SA 4.0; enquadramento adaptado ao cartão.'
+ }
+};
+function useCuratedSportsPhoto(article){
+ if(article.category!=='Desporto')return article;
+ // Keep any original photo specifically commissioned or selected for this article.
+ const generic=!!article.image_url&&repeatedStockSportPhoto.test(article.image_url);
+ if(!generic)return article;
+ const archive=sportsSpecificArchives[article.id]||sportsSelectedTeamPhotos[article.id];
+ if(archive)return {...article,...archive};
+ // For all other sports results, prefer the actual two teams and correct score
+ // to historically unrelated photos or generic stadium imagery.
+ return {...article,image_url:null,image_credit:null,image_alt:null,image_source_url:null,image_caption:null};
+}
+function imageUrl(value){const url=safeUrl(value);if(!url)return null;const u=new URL(url);return ['images.unsplash.com','images.pexels.com','upload.wikimedia.org','thumb.wikimedia.org','commons.wikimedia.org'].includes(u.hostname)?u:null;}
+function articleImage(article,eager=false){const url=imageUrl(article.image_url);if(!url)return null;const img=document.createElement('img');img.src=url.href;img.alt=article.image_alt||'Imagem relacionada com a notícia';img.loading=eager?'eager':'lazy';img.decoding='async';img.width=1200;img.height=800;img.referrerPolicy='no-referrer';if(eager)img.fetchPriority='high';return img;}
+function readerImage(article){const fig=$('reader-image');fig.replaceChildren();const img=articleImage(article,true);fig.hidden=!img;if(!img)return;img.addEventListener('error',()=>{fig.hidden=true;},{once:true});const cap=document.createElement('figcaption');cap.textContent=article.image_caption||(article.image_credit?'Fotografia editorial':'Imagem ilustrativa.');if(article.image_credit){cap.append(' · ');const source=safeUrl(article.image_source_url);const credit=document.createElement(source?'a':'span');credit.textContent=article.image_credit;if(source){credit.href=source;credit.target='_blank';credit.rel='noopener noreferrer';}cap.append(credit);}fig.append(img,cap);}
 
 async function trackView(articleId=null){
  if(!hasConfig)return;
@@ -41,16 +131,16 @@ function relatedReading(article){
  for(const related of ranked){const button=document.createElement('button');button.type='button';button.className='related-link';const label=document.createElement('span');label.className='related-category';label.textContent=related.category;const title=document.createElement('strong');title.textContent=related.title;button.append(label,title);button.onclick=()=>{openArticle(related);reader.scrollTo({top:0,behavior:'smooth'});};container.append(button);}
 }
 function openArticle(article){if(!article.demo)void trackView(article.id);relatedReading(article);readerImage(article);$('reader-title').textContent=article.title;$('reader-category').textContent=article.category;$('reader-meta').textContent=article.demo?'Apresentação editorial · Redação Notícias Para Todos':`${article.author||'Redação Notícias Para Todos'} · ${new Date(article.published_at).toLocaleDateString('pt-PT')}`;$('reader-body').textContent=article.body||article.summary;const url=safeUrl(article.source_url);$('reader-source').hidden=!url;if(url)$('reader-source').href=url;$('share-status').textContent='';$('share').onclick=async()=>{const link=new URL(location.href);link.hash='artigo='+encodeURIComponent(article.id);try{await navigator.clipboard.writeText(link.href);$('share-status').textContent='Ligação copiada.';}catch{$('share-status').textContent='Copie esta ligação: '+link.href;}};if(!reader.open)reader.showModal();syncSlides();}
-function render(){const q=normalize($('search').value);const filtered=articles.filter(a=>(selected==='Todas'||a.category===selected)&&normalize(`${a.title} ${a.summary} ${a.category}`).includes(q));updateSectionUI(filtered.length);$('articles').replaceChildren();$('empty').hidden=loading||filtered.length>0;$('show-all').hidden=filtered.length<=6||showAll;const ordered=selected==='Todas'&&!q?[...filtered.filter(isLeadArticle),...filtered.filter(a=>!isLeadArticle(a))]:filtered;const visible=showAll?ordered:ordered.slice(0,6);visible.forEach((a,i)=>{const card=document.createElement('article');card.className='article';const art=document.createElement('div');art.className='art tone'+(sections.indexOf(a.category)%6);art.setAttribute('aria-hidden','true');const icon=document.createElement('span');icon.className='art-symbol';icon.textContent=({Angola:'AO',Mundo:'↗',Diáspora:'↔',Desporto:'◎',Tecnologia:'✳',Oportunidades:'+'})[a.category]||'↗';art.append(icon);const label=document.createElement('span');label.className='label';label.textContent=a.category.toUpperCase();const number=document.createElement('span');number.className='number';number.textContent='NPT / '+String(i+1).padStart(2,'0');art.append(label,number);const photo=articleImage(a,i===0);if(photo){art.classList.add('has-photo');art.removeAttribute('aria-hidden');const badge=document.createElement('span');badge.className='photo-badge';badge.textContent='IMAGEM ILUSTRATIVA';art.append(photo,badge);photo.addEventListener('error',()=>{photo.remove();badge.remove();art.classList.remove('has-photo');art.setAttribute('aria-hidden','true');},{once:true});}const category=document.createElement('p');category.className='eyebrow';category.textContent=a.category;const h=document.createElement('h3');const b=document.createElement('button');b.textContent=a.title;b.onclick=()=>openArticle(a);h.append(b);const summary=document.createElement('p');summary.textContent=a.summary;const meta=document.createElement('span');meta.className='meta';meta.textContent=a.demo?'APRESENTAÇÃO EDITORIAL':'PUBLICADO · '+new Date(a.published_at).toLocaleDateString('pt-PT');card.append(art,category,h,summary,meta);$('articles').append(card);});}
+function render(){const q=normalize($('search').value);const filtered=articles.filter(a=>(selected==='Todas'||a.category===selected)&&normalize(`${a.title} ${a.summary} ${a.category}`).includes(q));updateSectionUI(filtered.length);$('articles').replaceChildren();$('empty').hidden=loading||filtered.length>0;$('show-all').hidden=filtered.length<=6||showAll;const ordered=selected==='Todas'&&!q?[...filtered.filter(isLeadArticle),...filtered.filter(a=>!isLeadArticle(a))]:filtered;const visible=showAll?ordered:ordered.slice(0,6);visible.forEach((a,i)=>{const card=document.createElement('article');card.className='article';const art=document.createElement('div');art.className='art tone'+(sections.indexOf(a.category)%6);art.setAttribute('aria-hidden','true');const icon=document.createElement('span');icon.className='art-symbol';icon.textContent=({Angola:'AO',Mundo:'↗',Diáspora:'↔',Desporto:'◎',Tecnologia:'✳',Oportunidades:'+'})[a.category]||'↗';art.append(icon);const label=document.createElement('span');label.className='label';label.textContent=a.category.toUpperCase();const number=document.createElement('span');number.className='number';number.textContent='NPT / '+String(i+1).padStart(2,'0');art.append(label,number);art.dataset.editorialPhoto=a.image_url&&a.image_credit&&a.image_source_url?'true':'false';const photo=articleImage(a,i===0);if(photo){art.classList.add('has-photo');art.removeAttribute('aria-hidden');const badge=document.createElement('span');badge.className='photo-badge';badge.textContent=a.image_caption?.toLowerCase().includes('arquivo')?'FOTOGRAFIA DE ARQUIVO':a.image_credit?'FOTOGRAFIA · '+a.image_credit:'IMAGEM EDITORIAL';art.append(photo,badge);photo.addEventListener('error',()=>{photo.remove();badge.remove();art.classList.remove('has-photo');art.dataset.editorialPhoto='false';art.setAttribute('aria-hidden','true');},{once:true});}const category=document.createElement('p');category.className='eyebrow';category.textContent=a.category;const h=document.createElement('h3');const b=document.createElement('button');b.textContent=a.title;b.onclick=()=>openArticle(a);h.append(b);const summary=document.createElement('p');summary.textContent=a.summary;const meta=document.createElement('span');meta.className='meta';meta.textContent=a.demo?'APRESENTAÇÃO EDITORIAL':'PUBLICADO · '+new Date(a.published_at).toLocaleDateString('pt-PT');card.append(art,category,h,summary,meta);$('articles').append(card);});}
 function fromHash(){if(location.hash.startsWith('#artigo=')){try{const id=decodeURIComponent(location.hash.slice(8));const a=articles.find(x=>String(x.id)===id);if(a)openArticle(a);}catch{}}}
 $('search').addEventListener('input',()=>{showAll=false;render();});$('show-all').onclick=()=>{showAll=true;render();};$('close-reader').onclick=()=>reader.close();window.addEventListener('hashchange',fromHash);render();
-async function load(){const cfg=window.PORTAL_CONFIG||{};if(!cfg.supabaseUrl||!cfg.supabaseAnonKey){$('notice').textContent='Os artigos abaixo apresentam a linha editorial. Não são notícias de atualidade.';setSlides();fromHash();return;}try{const base=safeUrl(cfg.supabaseUrl);if(!base)throw Error('URL inválida');const url=new URL('/rest/v1/articles',base);url.search=new URLSearchParams({select:'id,title,summary,body,category,author,source_url,published_at,image_url,image_alt,image_credit,image_source_url,image_caption',published:'eq.true',published_at:'lte.'+new Date().toISOString(),order:'published_at.desc',limit:'60'});const res=await fetch(url,{headers:{apikey:cfg.supabaseAnonKey,...(cfg.supabaseAnonKey.startsWith('sb_publishable_')?{}:{Authorization:'Bearer '+cfg.supabaseAnonKey})},signal:AbortSignal.timeout(10000)});if(!res.ok)throw Error('Falha de leitura');const rows=await res.json();loading=false;articles=rows.filter(a=>a.id&&typeof a.title==='string'&&typeof a.summary==='string'&&typeof a.body==='string'&&sections.includes(a.category)&&a.category!=='Todas'&&Number.isFinite(Date.parse(a.published_at)));$('notice').textContent=articles.length?'Artigos publicados pela redação. Consulte as fontes no final de cada leitura.':'A redação está a preparar as primeiras notícias. Volte em breve.';render();setSlides();fromHash();}catch{loading=false;articles=examples;render();setSlides();$('notice').textContent='Não foi possível carregar as notícias. Mostramos apenas a apresentação editorial. Tente novamente mais tarde.';fromHash();}}
+async function load(){const cfg=window.PORTAL_CONFIG||{};if(!cfg.supabaseUrl||!cfg.supabaseAnonKey){$('notice').textContent='Os artigos abaixo apresentam a linha editorial. Não são notícias de atualidade.';setSlides();fromHash();return;}try{const base=safeUrl(cfg.supabaseUrl);if(!base)throw Error('URL inválida');const url=new URL('/rest/v1/articles',base);url.search=new URLSearchParams({select:'id,title,summary,body,category,author,source_url,published_at,image_url,image_alt,image_credit,image_source_url,image_caption',published:'eq.true',published_at:'lte.'+new Date().toISOString(),order:'published_at.desc',limit:'60'});const res=await fetch(url,{headers:{apikey:cfg.supabaseAnonKey,...(cfg.supabaseAnonKey.startsWith('sb_publishable_')?{}:{Authorization:'Bearer '+cfg.supabaseAnonKey})},signal:AbortSignal.timeout(10000)});if(!res.ok)throw Error('Falha de leitura');const rows=await res.json();loading=false;articles=rows.filter(a=>a.id&&typeof a.title==='string'&&typeof a.summary==='string'&&typeof a.body==='string'&&sections.includes(a.category)&&a.category!=='Todas'&&Number.isFinite(Date.parse(a.published_at))).map(useCuratedSportsPhoto);$('notice').textContent=articles.length?'Artigos publicados pela redação. Consulte as fontes no final de cada leitura.':'A redação está a preparar as primeiras notícias. Volte em breve.';render();setSlides();fromHash();}catch{loading=false;articles=examples;render();setSlides();$('notice').textContent='Não foi possível carregar as notícias. Mostramos apenas a apresentação editorial. Tente novamente mais tarde.';fromHash();}}
 
 // Carousel uses the full published edition; it pauses during reading and keyboard interaction.
 let slides=[],slideIndex=0,slideTimer=null;
 let slidePaused=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const carousel=document.querySelector('.news-carousel');
-function paintSlide(){const a=slides[slideIndex];if(!a)return;$('slide-category').textContent=a.category;$('slide-title').textContent=a.title;$('slide-summary').textContent=a.summary;$('slide-counter').textContent=String(slideIndex+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');$('slide-open').disabled=false;$('slide-open').onclick=$('slide-title').onclick=()=>openArticle(a);const art=$('slide-art');art.replaceChildren();const photo=articleImage(a,true);if(photo){photo.alt='';photo.addEventListener('error',()=>photo.remove(),{once:true});art.append(photo);const label=document.createElement('span');label.className='slide-photo-label';label.textContent='IMAGEM ILUSTRATIVA';art.append(label);}art.dataset.category=a.category;}
+function paintSlide(){const a=slides[slideIndex];if(!a)return;$('slide-category').textContent=a.category;$('slide-title').textContent=a.title;$('slide-summary').textContent=a.summary;$('slide-counter').textContent=String(slideIndex+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');$('slide-open').disabled=false;$('slide-open').onclick=$('slide-title').onclick=()=>openArticle(a);const art=$('slide-art');art.replaceChildren();art.dataset.editorialPhoto=a.image_url&&a.image_credit&&a.image_source_url?'true':'false';const photo=articleImage(a,true);if(photo){photo.alt='';photo.addEventListener('error',()=>{photo.remove();art.dataset.editorialPhoto='false';document.dispatchEvent(new Event('sports-art-fallback'));},{once:true});art.append(photo);const label=document.createElement('span');label.className='slide-photo-label';label.textContent=a.image_caption?.toLowerCase().includes('arquivo')?'FOTOGRAFIA DE ARQUIVO':a.image_credit?'FOTOGRAFIA · '+a.image_credit:'IMAGEM EDITORIAL';art.append(label);}art.dataset.category=a.category;}
 function syncSlides(){clearInterval(slideTimer);$('slide-toggle').textContent=slidePaused?'Reproduzir':'Pausar';$('slide-toggle').setAttribute('aria-label',slidePaused?'Reproduzir carrossel':'Pausar carrossel');$('slide-counter').setAttribute('aria-live',slidePaused?'polite':'off');if(!slidePaused&&slides.length>1&&!document.hidden&&!reader.open&&!carousel.matches(':hover')&&!carousel.contains(document.activeElement))slideTimer=setInterval(()=>{slideIndex=(slideIndex+1)%slides.length;paintSlide();},8000);}
 function setSlides(){const edition=articles.filter(a=>!a.demo&&(selected==='Todas'||a.category===selected));const remaining=edition.filter(a=>!isLeadArticle(a));slides=selected==='Todas'&&remaining.length?remaining:edition;const hasSlides=slides.length>0;['slide-prev','slide-next','slide-toggle'].forEach(id=>{$(id).disabled=!hasSlides;});if(!hasSlides){$('slide-title').textContent=loading?'A carregar os destaques…':'Em breve · '+(selected==='Todas'?'Novos destaques':selected);$('slide-title').onclick=null;$('slide-title').disabled=true;$('slide-summary').textContent='Estamos a preparar notícias para esta secção. Explore as restantes secções do portal.';$('slide-open').disabled=true;$('slide-counter').textContent='0 / 0';$('slide-category').textContent=selected==='Todas'?'A nossa edição':selected;$('slide-art').replaceChildren();clearInterval(slideTimer);return;}$('slide-title').disabled=false;slideIndex=0;paintSlide();syncSlides();}
 

@@ -6,9 +6,21 @@ const db=createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
 let currentId=null,rows=[];
 const fields=['title','summary','body','category','author','source_url','image_url','image_alt','image_credit','image_source_url','image_caption'];
 function notify(text){message.textContent=text;}
+function previewEditorialImage(){
+ const wrapper=$('editor-image-preview'),photo=$('editor-image-thumb'),caption=$('editor-image-caption');
+ const raw=$('image_url').value.trim();let safe=null;
+ try{const u=new URL(raw);if(u.protocol==='https:'&&['images.unsplash.com','images.pexels.com','upload.wikimedia.org'].includes(u.hostname.toLowerCase()))safe=u.href;}catch{}
+ wrapper.hidden=!safe;
+ if(!safe){photo.removeAttribute('src');return;}
+ photo.src=safe;photo.alt=$('image_alt').value.trim()||'Pré-visualização da fotografia da notícia';
+ caption.textContent=$('image_credit').value.trim()?'Crédito: '+$('image_credit').value.trim():'Pré-visualização. Verifique a autorização de reutilização e os créditos antes de publicar.';
+}
+for(const id of ['image_url','image_alt','image_credit'])$(id).addEventListener('input',previewEditorialImage);
+$('editor-image-thumb').addEventListener('error',()=>{$('editor-image-caption').textContent='Não foi possível carregar esta imagem. Verifique a ligação.';});
+
 function dateInput(value){const d=value?new Date(value):new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);}
-function clearForm(){$('article-form').reset();currentId=null;$('editor-title').textContent='Novo artigo';$('author').value='Redação Notícias Para Todos';$('published_at').value=dateInput();notify('');}
-function edit(row){currentId=row.id;fields.forEach(k=>$(k).value=row[k]??'');$('published').checked=row.published;$('published_at').value=dateInput(row.published_at);$('editor-title').textContent='Editar artigo';window.scrollTo({top:0,behavior:'smooth'});}
+function clearForm(){$('article-form').reset();currentId=null;$('editor-title').textContent='Novo artigo';$('author').value='Redação Notícias Para Todos';$('published_at').value=dateInput();notify('');previewEditorialImage();}
+function edit(row){currentId=row.id;fields.forEach(k=>$(k).value=row[k]??'');$('published').checked=row.published;$('published_at').value=dateInput(row.published_at);$('editor-title').textContent='Editar artigo';previewEditorialImage();window.scrollTo({top:0,behavior:'smooth'});}
 async function isAdmin(){const {data:{user},error}=await db.auth.getUser();if(error||!user)return false;const result=await db.from('profiles').select('role').eq('id',user.id).maybeSingle();return !result.error&&result.data?.role==='admin';}
 async function refresh(){if(!(await isAdmin())){$('login').hidden=false;$('dashboard').hidden=true;notify('');return;}
 $('login').hidden=true;$('dashboard').hidden=false;await load();}
@@ -135,7 +147,15 @@ $('reload').onclick=load;$('new').onclick=clearForm;$('reset').onclick=clearForm
 $('article-form').onsubmit=async e=>{e.preventDefault();const btn=$('save');btn.disabled=true;try{
 if(!(await isAdmin())){notify('Sessão sem autorização.');return;}
 const payload={};for(const k of fields){const v=$(k).value.trim();payload[k]=['source_url','image_url','image_alt','image_credit','image_source_url','image_caption'].includes(k)?v||null:v;}
-if(payload.image_url&&new URL(payload.image_url).hostname!=='images.unsplash.com'){notify('A imagem deve ser de images.unsplash.com, como exige o portal.');return;}
+if(payload.category==='Desporto'&&payload.image_url){
+ if(/photo-1771344164616-3582e4dc2f07|photo-1549210194-fb0aac030c32/.test(payload.image_url)){
+  notify('Esta imagem genérica já foi usada em notícias sem relação com o confronto. Escolha uma fotografia específica ou deixe o campo vazio para mostrar o cartão das equipas e resultado.');return;
+ }
+ if(!payload.image_credit||!payload.image_source_url||!payload.image_alt){
+  notify('Nas notícias desportivas com fotografia, indique descrição, crédito e origem/licença da imagem. Se não tiver foto apropriada, deixe o campo vazio para criar o cartão do confronto.');return;
+ }
+}
+if(payload.image_url){const host=new URL(payload.image_url).hostname.toLowerCase();if(!['images.unsplash.com','images.pexels.com','upload.wikimedia.org'].includes(host)){notify('Utilize imagens de Unsplash, Pexels ou Wikimedia Commons com autorização adequada.');return;}if(host!=='images.unsplash.com'&&(!payload.image_credit||!payload.image_source_url)){notify('Para fotografias editoriais, indique o crédito e a ligação de origem/licença da imagem.');return;}}
 for(const k of ['source_url','image_url','image_source_url'])if(payload[k]&&!payload[k].startsWith('https://')){notify('As ligações devem usar HTTPS.');return;}
 payload.published=$('published').checked;payload.published_at=new Date($('published_at').value).toISOString();
 const query=currentId?db.from('articles').update(payload).eq('id',currentId):db.from('articles').insert(payload);
