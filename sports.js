@@ -60,23 +60,32 @@ function matchTeams(text,e){
   return aliases.some(n=>title.includes(n));
  });
 }
+function namesFromHeadline(title){
+ const phrase=String(title||'').match(/^(.{2,52}?)\s+(?:vence|vencem|derrota|derrotam|bate|batem|empata|empatam|supera|superam)\s+(.{2,52}?)(?:\s+por\s+|\s+na\s+|\s+no\s+|\s+ap[oó]s\s+|$)/i);
+ if(!phrase)return null;
+ const pair=[phrase[1].trim(),phrase[2].trim()];
+ return pair.every(n=>n.length>=3&&n.length<=52)?pair:null;
+}
 function artForArticle(title,container){
- if(!container||container.dataset.sportsMatch===title)return;
+ if(!container)return;
  const match=all.find(e=>matchTeams(title,e));
- if(!match)return;
- container.dataset.sportsMatch=title;
+ const names=match?[teamName(match.away),teamName(match.home)]:namesFromHeadline(title);
+ if(!names)return;
+ const key=title+':'+(match?.id||'headline');
+ if(container.dataset.sportsMatch===key)return;
+ container.dataset.sportsMatch=key;
  container.classList.add('sports-teams-art');container.classList.remove('has-photo');
  container.replaceChildren();
  const strip=document.createElement('div');strip.className='sports-teams-strip';
- for(const team of [match.away,match.home]){
+ names.forEach((name,i)=>{
   const box=document.createElement('div');box.className='sports-teams-logo';
-  const img=crest(team);if(img)box.append(img);
-  const name=document.createElement('span');name.textContent=teamName(team);box.append(name);strip.append(box);
- }
+  const img=match?crest(i===0?match.away:match.home):null;if(img)box.append(img);
+  const label=document.createElement('span');label.textContent=name;box.append(label);strip.append(box);
+ });
  const separator=document.createElement('span');separator.className='sports-vs';separator.textContent='×';strip.insertBefore(separator,strip.children[1]);
- const note=document.createElement('span');note.className='sports-teams-note';note.textContent='EMBLEMAS DAS EQUIPAS · '+match.league;
- container.append(strip,note);
- container.removeAttribute('aria-hidden');
+ const note=document.createElement('span');note.className='sports-teams-note';
+ note.textContent=match?'EMBLEMAS DAS EQUIPAS · '+match.league:'EQUIPAS REFERIDAS NA NOTÍCIA · ILUSTRAÇÃO EDITORIAL';
+ container.append(strip,note);container.removeAttribute('aria-hidden');
 }
 function enrichArticles(){
  for(const card of document.querySelectorAll('#articles .article')){
@@ -91,6 +100,7 @@ let enrichmentQueued=false;
 function scheduleEnrich(){if(enrichmentQueued)return;enrichmentQueued=true;requestAnimationFrame(()=>{enrichmentQueued=false;enrichArticles();});}
 new MutationObserver(scheduleEnrich).observe($('articles'),{childList:true,subtree:true});
 new MutationObserver(scheduleEnrich).observe($('slide-title'),{childList:true});
+scheduleEnrich();
 async function refresh(force=false){
  if(pending||document.hidden)return;
  if(!force&&Date.now()-lastFetch<MIN_DELAY)return;
