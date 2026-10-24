@@ -5,19 +5,93 @@ const SUPABASE_KEY=process.env.SUPABASE_ANON_KEY||'sb_publishable_9u18qsxaBtaHBT
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const meta=x=>esc(String(x||'').replace(/\s+/g,' ').slice(0,320));
-function publicPhoto(a){
- if(a.category==='Desporto'&&/photo-1771344164616-3582e4dc2f07|photo-1549210194-fb0aac030c32/.test(a.image_url||''))return null;
- try{const u=new URL(a.image_url);return u.protocol==='https:'&&['images.unsplash.com','images.pexels.com','upload.wikimedia.org','commons.wikimedia.org'].includes(u.hostname)?u.href:null;}catch{return null;}
+const sportsSelectedTeamPhotos={ 
+ 'ca87701f-6823-4ea8-bda5-87029c8ee646':{
+  image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Marcelino_Nunez.png',
+  image_alt:'Marcelino Núñez com a camisola do Ipswich Town em fotografia de 2025',
+  image_credit:'MilesaMFC / Wikimedia Commons · CC0 · Arquivo 2025',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Marcelino_Nunez.png',
+  image_caption:'Marcelino Núñez ao serviço do Ipswich Town em 2025; imagem de arquivo, não retrata o encontro com Nottingham Forest. CC0.'
+ },
+ '3deb2fd4-66f1-4bee-abe4-08ba99257171':{
+  image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Benfica-campeao-supertaca-2025.jpg',
+  image_alt:'Jogadores do Benfica celebram a Supertaça de 2025',
+  image_credit:'Sport Lisboa e Benfica / Wikimedia Commons · CC BY 3.0 · Arquivo 2025',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Benfica-campeao-supertaca-2025.jpg',
+  image_caption:'Equipa do Benfica campeã da Supertaça de 2025. Imagem de arquivo, não do confronto com o Omonia. Sport Lisboa e Benfica / Wikimedia Commons, CC BY 3.0.'
+ },
+ 'bc675e3f-53d3-4292-ae8e-f19748791df0':{
+  image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Grizzlies_vs._Thunder%2C_March_2025.png',
+  image_alt:'Shai Gilgeous-Alexander dos Oklahoma City Thunder a lançar um lance livre frente aos Memphis Grizzlies, em março de 2025',
+  image_credit:'Young Ru Finch / Wikimedia Commons · CC BY 3.0 · Arquivo 2025',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Grizzlies_vs._Thunder,_March_2025.png',
+  image_caption:'Shai Gilgeous-Alexander em ação pelos Thunder frente aos Grizzlies em março de 2025. Não é o jogo com os Nuggets. Young Ru Finch / Wikimedia Commons, CC BY 3.0; imagem reenquadrada.'
+ },
+ 'df4b45a0-ebbc-4496-9534-680a9b8c5627':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/f/fa/SC_Braga_2011.jpg',
+  image_alt:'Equipa de futebol do Sporting de Braga em 2011',
+  image_credit:'Roger Gorączniak / Wikimedia Commons · CC BY 3.0 · Arquivo',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:SC_Braga_2011.jpg',
+  image_caption:'Fotografia de arquivo do SC Braga, de 2011; não é do jogo frente ao Gent. CC BY 3.0.'
+ },
+ '45cf6e2f-76b3-43b9-b45b-a5c7afc8e967':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/0/05/Ferencv%C3%A1ros_starting_11_2026_Magyar_Kupa_final.jpg',
+  image_alt:'Jogadores do Ferencváros antes da final da Taça da Hungria de 2026',
+  image_credit:'Rakeck / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2026',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Ferencv%C3%A1ros_starting_11_2026_Magyar_Kupa_final.jpg',
+  image_caption:'Arquivo do Ferencváros em maio de 2026, na final da Taça da Hungria; não representa a partida frente ao Torreense. CC BY-SA 4.0.'
+ },
+ '91fdeb98-758c-40d3-a6a3-854e13311fd2':{
+  image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/1_tyrese_maxey_2026_%28cropped%29.jpg?width=1200',
+  image_alt:'Tyrese Maxey com equipamento dos Philadelphia 76ers durante um jogo da NBA em abril de 2026',
+  image_credit:'Chensiyuan / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2026',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:1_tyrese_maxey_2026_(cropped).jpg',
+  image_caption:'Tyrese Maxey dos Philadelphia 76ers, em abril de 2026. Fotografia de arquivo, não do encontro com Cleveland. Chensiyuan / Wikimedia Commons, CC BY-SA 4.0; versão recortada.'
+ },
+ '58aee1c1-391b-4e7c-94ce-8d860d6369f7':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/f/f8/2011_UEFA_Europa_League_trophy_at_Museu_FC_Porto.jpg',
+  image_alt:'Troféu da Liga Europa da UEFA exposto no Museu FC Porto',
+  image_credit:'Threeohsix / Wikimedia Commons · CC BY-SA 4.0',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:2011_UEFA_Europa_League_trophy_at_Museu_FC_Porto.jpg',
+  image_caption:'Imagem ilustrativa do troféu da Liga Europa exposto no Museu FC Porto; não documenta os jogos referidos no artigo. CC BY-SA 4.0.'
+ },
+
+ 'b6258a6a-f536-4f4e-be1d-b30e8833156f':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/e/e6/Elenco_do_Bournemouth_abra%C3%A7ados_ap%C3%B3s_gol_de_Rayan.jpg',
+  image_alt:'Jogadores do Bournemouth abraçados a celebrar um golo durante um jogo da Premier League em fevereiro de 2026',
+  image_credit:'AFC Bournemouth / Wikimedia Commons · CC BY 4.0 · Arquivo 2026',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Elenco_do_Bournemouth_abra%C3%A7ados_ap%C3%B3s_gol_de_Rayan.jpg',
+  image_caption:'Fotografia de ação de um jogo do Bournemouth em 8 de fevereiro de 2026; NÃO representa a partida com o Milan. AFC Bournemouth / Wikimedia Commons, CC BY 4.0; enquadramento adaptado.'
+ }
+};
+const sportsSpecificArchives={
+ '00b58532-b1c5-4e44-86bb-5453c5d54525':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Chicago_Bulls_vs._Milwaukee_Bucks_April_2023_34_%28in-game_action%29.jpg/1280px-Chicago_Bulls_vs._Milwaukee_Bucks_April_2023_34_%28in-game_action%29.jpg',
+  image_alt:'Chicago Bulls e Milwaukee Bucks em campo num jogo disputado em abril de 2023',
+  image_credit:'Michael Barera / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2023',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Chicago_Bulls_vs._Milwaukee_Bucks_April_2023_34_(in-game_action).jpg',
+  image_caption:'Fotografia de arquivo de Bulls contra Bucks, em 5 de abril de 2023 (105–92). NÃO representa o jogo 132–125 desta notícia. Michael Barera / Wikimedia Commons, CC BY-SA 4.0; enquadramento adaptado ao cartão.'
+ }
+};
+
+function editorialPhoto(article){
+ let a=article;
+ if(a.category==='Desporto'&&/photo-1771344164616-3582e4dc2f07|photo-1549210194-fb0aac030c32/.test(a.image_url||'')){
+  const archived=sportsSpecificArchives[a.id]||sportsSelectedTeamPhotos[a.id];
+  a=archived?{...a,...archived}:{...a,image_url:null};
+ }
+ try{const u=new URL(a.image_url);if(u.protocol==='https:'&&['images.unsplash.com','images.pexels.com','upload.wikimedia.org','thumb.wikimedia.org','commons.wikimedia.org'].includes(u.hostname))return {url:u.href,alt:a.image_alt||a.title,credit:a.image_credit||'',caption:a.image_caption||'Fotografia editorial de arquivo'};}catch{}
+ return null;
 }
 function jsonld(a,canonical,image){
  return JSON.stringify({'@context':'https://schema.org','@type':'NewsArticle',headline:a.title,description:a.summary,datePublished:a.published_at,dateModified:a.updated_at||a.published_at,author:{'@type':'Organization',name:a.author||'Redação Notícias Para Todos'},publisher:{'@type':'NewsMediaOrganization',name:'Notícias Para Todos',url:ORIGIN},mainEntityOfPage:canonical,url:canonical,...(image?{image:[image]}:{})}).replace(/</g,'\\u003c');
 }
 function template(a){
- const canonical=ORIGIN+'/noticia/'+encodeURIComponent(a.id),image=publicPhoto(a),title=meta(a.title),desc=meta(a.summary);
+ const canonical=ORIGIN+'/noticia/'+encodeURIComponent(a.id),photoInfo=editorialPhoto(a),image=photoInfo?.url||null,title=meta(a.title),desc=meta(a.summary);
  const paragraphs=String(a.body||a.summary||'').split(/\n\s*\n/).filter(Boolean).map(p=>'<p>'+esc(p).replace(/\n/g,'<br>')+'</p>').join('\n');
  let source='';try{const u=new URL(a.source_url);if(u.protocol==='https:')source='<p><a href="'+esc(u.href)+'" target="_blank" rel="noopener noreferrer nofollow">Consultar fonte original ↗</a></p>';}catch{}
  const date=new Date(a.published_at),dateDisplay=Number.isFinite(date.getTime())?date.toLocaleDateString('pt-PT',{day:'numeric',month:'long',year:'numeric'}):'';
- const photo=image?'<figure><img src="'+esc(image)+'" alt="'+meta(a.image_alt||a.title)+'" loading="eager"><figcaption>'+esc(a.image_caption||'Fotografia de arquivo ou imagem editorial.')+(a.image_credit?' · '+esc(a.image_credit):'')+'</figcaption></figure>':'';
+ const photo=image?'<figure><img src="'+esc(image)+'" alt="'+meta(photoInfo.alt)+'" loading="eager"><figcaption>'+esc(photoInfo.caption)+(photoInfo.credit?' · '+esc(photoInfo.credit):'')+'</figcaption></figure>':'';
  return '<!doctype html><html lang="pt-PT"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="index,follow,max-image-preview:large"><title>'+title+' — Notícias Para Todos</title><meta name="description" content="'+desc+'"><link rel="canonical" href="'+esc(canonical)+'"><meta property="og:type" content="article"><meta property="og:locale" content="pt_PT"><meta property="og:site_name" content="Notícias Para Todos"><meta property="og:title" content="'+title+'"><meta property="og:description" content="'+desc+'"><meta property="og:url" content="'+esc(canonical)+'"><meta property="article:published_time" content="'+esc(a.published_at)+'"><meta name="twitter:card" content="'+(image?'summary_large_image':'summary')+'"><meta name="twitter:title" content="'+title+'"><meta name="twitter:description" content="'+desc+'">'+(image?'<meta property="og:image" content="'+esc(image)+'"><meta name="twitter:image" content="'+esc(image)+'">':'')+'<script type="application/ld+json">'+jsonld(a,canonical,image)+'</script><style>:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#f5f8fc;color:#15243e;font:17px/1.8 system-ui,-apple-system,sans-serif}header{background:#101e35;color:#fff;padding:22px max(20px,calc((100vw - 960px)/2))}header a{font-size:24px;font-weight:850;color:#fff;text-decoration:none}main{max-width:860px;margin:45px auto 75px;padding:0 22px}article{background:white;padding:clamp(20px,4vw,54px);border-radius:17px;border:1px solid #e3e8f0}h1{font-size:clamp(30px,4.7vw,51px);line-height:1.17;letter-spacing:-1.3px;margin:17px 0}h1+p{font-size:20px;line-height:1.5;color:#435673}.category{color:#b03828;letter-spacing:.13em;text-transform:uppercase;font-weight:800;font-size:12px}.date{font-size:13px;color:#607188}figure{margin:28px 0}figure img{width:100%;height:auto;max-height:530px;object-fit:cover;border-radius:10px}figcaption{font-size:12px;color:#61718a;margin-top:6px;line-height:1.6}.story p{margin:0 0 20px;white-space:normal;overflow-wrap:anywhere}.link{font-size:14px;color:#23578f}footer{text-align:center;margin:25px;color:#607188;font-size:12px}a{color:#205797}a:focus-visible{outline:3px solid #e5a83a;outline-offset:4px}@media(max-width:520px){main{margin:18px auto 40px}article{padding:22px}}</style></head><body><header><a href="/">notícias para todos.</a></header><main><article><div class="category">'+esc(a.category)+'</div><h1>'+title+'</h1><p>'+desc+'</p><p class="date">'+esc(dateDisplay)+' · '+esc(a.author||'Redação Notícias Para Todos')+'</p>'+photo+'<div class="story">'+paragraphs+'</div>'+source+'<p><a class="link" href="/">← Voltar ao jornal</a></p></article><footer>Notícias Para Todos · Informação com contexto e fontes identificadas.</footer></main></body></html>';
 }
 module.exports=async function handler(req,res){
