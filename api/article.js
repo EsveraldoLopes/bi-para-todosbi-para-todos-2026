@@ -27,7 +27,7 @@ module.exports=async function handler(req,res){
  const id=typeof req.query?.id==='string'?req.query.id:'';
  if(!UUID.test(id)){res.statusCode=404;res.setHeader('X-Robots-Tag','noindex');return res.end('<h1>Notícia não encontrada</h1><a href="/">Voltar ao jornal</a>');}
  try{
-  const url=new URL('/rest/v1/articles',SUPABASE_URL);url.search=new URLSearchParams({select:'id,title,summary,body,category,author,source_url,published_at,updated_at,image_url,image_alt,image_credit,image_caption',id:'eq.'+id,published:'eq.true',published_at:'lte.'+new Date().toISOString(),limit:'1'});
+  const url=new URL('/rest/v1/articles',SUPABASE_URL);url.search=new URLSearchParams({select:'id,title,summary,body,category,author,source_url,published_at,image_url,image_alt,image_credit,image_caption',id:'eq.'+id,published:'eq.true',published_at:'lte.'+new Date().toISOString(),limit:'1'});
   const response=await fetch(url,{headers:{apikey:SUPABASE_KEY},signal:AbortSignal.timeout(8000)});
   if(!response.ok)throw Error('read failure '+response.status);
   const [a]=await response.json();
