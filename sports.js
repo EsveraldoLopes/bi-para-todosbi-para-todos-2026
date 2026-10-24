@@ -132,7 +132,7 @@ new MutationObserver(scheduleEnrich).observe($('articles'),{childList:true,subtr
 new MutationObserver(scheduleEnrich).observe($('slide-title'),{childList:true});
 scheduleEnrich();
 void loadTeamCatalogue();
-$('sports-explore').onclick=()=>{document.querySelector('[data-section="Desporto"]')?.click();document.querySelector('#categories button[aria-pressed="true"]')?.scrollIntoView({behavior:'smooth',block:'nearest'});document.getElementById('articles').scrollIntoView({behavior:'smooth'});};
+$('sports-explore').onclick=()=>{[...document.querySelectorAll('#categories button')].find(b=>b.textContent.includes('Desporto'))?.click();document.getElementById('articles').scrollIntoView({behavior:'smooth'});};
 async function refresh(force=false){
  if(pending||document.hidden)return;
  if(!force&&Date.now()-lastFetch<MIN_DELAY)return;
