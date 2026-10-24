@@ -44,16 +44,16 @@ const sportsSelectedTeamPhotos={
  '3deb2fd4-66f1-4bee-abe4-08ba99257171':{
   image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Benfica-campeao-supertaca-2025.jpg',
   image_alt:'Jogadores do Benfica celebram a Supertaça de 2025',
-  image_credit:'Sport Lisboa e Benfica / Wikimedia Commons · Arquivo 2025',
+  image_credit:'Sport Lisboa e Benfica / Wikimedia Commons · CC BY 3.0 · Arquivo 2025',
   image_source_url:'https://commons.wikimedia.org/wiki/File:Benfica-campeao-supertaca-2025.jpg',
-  image_caption:'Arquivo: Benfica campeão da Supertaça 2025. Esta fotografia não retrata o jogo com o Omonia; consultar as condições de licença na fonte.'
+  image_caption:'Equipa do Benfica campeã da Supertaça de 2025. Imagem de arquivo, não do confronto com o Omonia. Sport Lisboa e Benfica / Wikimedia Commons, CC BY 3.0.'
  },
  'bc675e3f-53d3-4292-ae8e-f19748791df0':{
-  image_url:'https://upload.wikimedia.org/wikipedia/commons/4/4e/Oklahoma_City_Thunder_%285528423584%29.jpg',
-  image_alt:'Jogadores dos Oklahoma City Thunder durante partida anterior',
-  image_credit:'Keith Allison / Wikimedia Commons · CC BY-SA 2.0 · Arquivo',
-  image_source_url:'https://commons.wikimedia.org/wiki/File:Oklahoma_City_Thunder_(5528423584).jpg',
-  image_caption:'Fotografia de arquivo dos Oklahoma City Thunder, de 2011; não retrata a vitória frente aos Nuggets. CC BY-SA 2.0.'
+  image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Grizzlies_vs._Thunder%2C_March_2025.png',
+  image_alt:'Shai Gilgeous-Alexander dos Oklahoma City Thunder a lançar um lance livre frente aos Memphis Grizzlies, em março de 2025',
+  image_credit:'Young Ru Finch / Wikimedia Commons · CC BY 3.0 · Arquivo 2025',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Grizzlies_vs._Thunder,_March_2025.png',
+  image_caption:'Shai Gilgeous-Alexander em ação pelos Thunder frente aos Grizzlies em março de 2025. Não é o jogo com os Nuggets. Young Ru Finch / Wikimedia Commons, CC BY 3.0; imagem reenquadrada.'
  },
  'df4b45a0-ebbc-4496-9534-680a9b8c5627':{
   image_url:'https://upload.wikimedia.org/wikipedia/commons/f/fa/SC_Braga_2011.jpg',
@@ -70,11 +70,11 @@ const sportsSelectedTeamPhotos={
   image_caption:'Arquivo do Ferencváros em maio de 2026, na final da Taça da Hungria; não representa a partida frente ao Torreense. CC BY-SA 4.0.'
  },
  '91fdeb98-758c-40d3-a6a3-854e13311fd2':{
-  image_url:'https://upload.wikimedia.org/wikipedia/commons/3/37/20101025_Philadelphia_76ers.jpg',
-  image_alt:'Jogadores Philadelphia 76ers em fotografia de arquivo da equipa',
-  image_credit:'Wikimedia Commons · CC BY-SA 2.0 · Arquivo 2010',
-  image_source_url:'https://commons.wikimedia.org/wiki/File:20101025_Philadelphia_76ers.jpg',
-  image_caption:'Fotografia de arquivo dos Philadelphia 76ers em 2010; não representa o jogo frente aos Cavaliers. CC BY-SA 2.0.'
+  image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/1_tyrese_maxey_2026_%28cropped%29.jpg?width=1200',
+  image_alt:'Tyrese Maxey com equipamento dos Philadelphia 76ers durante um jogo da NBA em abril de 2026',
+  image_credit:'Chensiyuan / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2026',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:1_tyrese_maxey_2026_(cropped).jpg',
+  image_caption:'Tyrese Maxey dos Philadelphia 76ers, em abril de 2026. Fotografia de arquivo, não do encontro com Cleveland. Chensiyuan / Wikimedia Commons, CC BY-SA 4.0; versão recortada.'
  },
  '58aee1c1-391b-4e7c-94ce-8d860d6369f7':{
   image_url:'https://upload.wikimedia.org/wikipedia/commons/f/f8/2011_UEFA_Europa_League_trophy_at_Museu_FC_Porto.jpg',
