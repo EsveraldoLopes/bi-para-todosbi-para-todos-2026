@@ -88,3 +88,9 @@
 .sports-team-monogram{display:grid;place-items:center;width:66px;height:66px;border:2px solid #86a9d5;border-radius:50%;background:#234d81;color:white;font-weight:900;font-size:22px;letter-spacing:.04em}
 .sports-teams-logo .sports-team-monogram{flex:none}
 @media(max-width:720px){.sports-team-monogram{height:50px;width:50px;font-size:17px}}
+
+/* Match-result editorial graphics, never represented as photos of a played match. */
+.art.sports-teams-art .sports-result-score{font-size:clamp(24px,3vw,38px);font-weight:900;color:#ffe7a6;white-space:nowrap;letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.carousel-backdrop.sports-teams-art .sports-result-score{font-size:clamp(21px,3vw,35px)}
+.sports-teams-art .sports-teams-logo span:not(.sports-team-monogram){font-size:clamp(12px,1.15vw,17px);font-weight:800;overflow-wrap:anywhere;text-align:center}
+@media(max-width:600px){.art.sports-teams-art .sports-result-score{font-size:22px}.sports-teams-strip{gap:7px}.sports-teams-art .sports-teams-logo span:not(.sports-team-monogram){font-size:12px}}
