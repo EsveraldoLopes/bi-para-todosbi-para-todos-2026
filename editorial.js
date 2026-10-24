@@ -6,9 +6,21 @@ const db=createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
 let currentId=null,rows=[];
 const fields=['title','summary','body','category','author','source_url','image_url','image_alt','image_credit','image_source_url','image_caption'];
 function notify(text){message.textContent=text;}
+function previewEditorialImage(){
+ const wrapper=$('editor-image-preview'),photo=$('editor-image-thumb'),caption=$('editor-image-caption');
+ const raw=$('image_url').value.trim();let safe=null;
+ try{const u=new URL(raw);if(u.protocol==='https:'&&['images.unsplash.com','images.pexels.com','upload.wikimedia.org'].includes(u.hostname.toLowerCase()))safe=u.href;}catch{}
+ wrapper.hidden=!safe;
+ if(!safe){photo.removeAttribute('src');return;}
+ photo.src=safe;photo.alt=$('image_alt').value.trim()||'Pré-visualização da fotografia da notícia';
+ caption.textContent=$('image_credit').value.trim()?'Crédito: '+$('image_credit').value.trim():'Pré-visualização. Verifique a autorização de reutilização e os créditos antes de publicar.';
+}
+for(const id of ['image_url','image_alt','image_credit'])$(id).addEventListener('input',previewEditorialImage);
+$('editor-image-thumb').addEventListener('error',()=>{$('editor-image-caption').textContent='Não foi possível carregar esta imagem. Verifique a ligação.';});
+
 function dateInput(value){const d=value?new Date(value):new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);}
-function clearForm(){$('article-form').reset();currentId=null;$('editor-title').textContent='Novo artigo';$('author').value='Redação Notícias Para Todos';$('published_at').value=dateInput();notify('');}
-function edit(row){currentId=row.id;fields.forEach(k=>$(k).value=row[k]??'');$('published').checked=row.published;$('published_at').value=dateInput(row.published_at);$('editor-title').textContent='Editar artigo';window.scrollTo({top:0,behavior:'smooth'});}
+function clearForm(){$('article-form').reset();currentId=null;$('editor-title').textContent='Novo artigo';$('author').value='Redação Notícias Para Todos';$('published_at').value=dateInput();notify('');previewEditorialImage();}
+function edit(row){currentId=row.id;fields.forEach(k=>$(k).value=row[k]??'');$('published').checked=row.published;$('published_at').value=dateInput(row.published_at);$('editor-title').textContent='Editar artigo';previewEditorialImage();window.scrollTo({top:0,behavior:'smooth'});}
 async function isAdmin(){const {data:{user},error}=await db.auth.getUser();if(error||!user)return false;const result=await db.from('profiles').select('role').eq('id',user.id).maybeSingle();return !result.error&&result.data?.role==='admin';}
 async function refresh(){if(!(await isAdmin())){$('login').hidden=false;$('dashboard').hidden=true;notify('');return;}
 $('login').hidden=true;$('dashboard').hidden=false;await load();}
