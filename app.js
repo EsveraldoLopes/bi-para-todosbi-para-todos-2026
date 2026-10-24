@@ -30,6 +30,29 @@ function safeUrl(value){try{const u=new URL(value);return u.protocol==='https:'?
 const repeatedStockSportPhoto=/photo-1771344164616-3582e4dc2f07|photo-1549210194-fb0aac030c32/;
 // Carefully verified archive: same two teams, but a different match.
 // Never label archival photos as depicting the result in this article.
+const sportsSelectedTeamPhotos={
+ 'bc675e3f-53d3-4292-ae8e-f19748791df0':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/1/13/Grizzlies_vs._Thunder%2C_March_2025.png',
+  image_alt:'Shai Gilgeous-Alexander dos Oklahoma City Thunder num jogo contra os Memphis Grizzlies em março de 2025',
+  image_credit:'Young Ru Finch / Wikimedia Commons · CC BY 3.0 · Arquivo 2025',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Grizzlies_vs._Thunder,_March_2025.png',
+  image_caption:'Imagem de arquivo dos Oklahoma City Thunder frente aos Memphis Grizzlies em 14 de março de 2025; NÃO retrata o jogo Thunder–Nuggets 96–84. Young Ru Finch / Wikimedia Commons, CC BY 3.0; enquadramento adaptado.'
+ },
+ 'ca87701f-6823-4ea8-bda5-87029c8ee646':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/9/94/Omari_Hutchinson%2C_Ipswich_Town.jpg',
+  image_alt:'Omari Hutchinson com o equipamento do Ipswich Town em 2024',
+  image_credit:'James Cracknell / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2024',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Omari_Hutchinson,_Ipswich_Town.jpg',
+  image_caption:'Arquivo: Omari Hutchinson com o Ipswich Town, dezembro de 2024; NÃO retrata o empate Ipswich–Nottingham Forest referido nesta notícia. James Cracknell / Wikimedia Commons, CC BY-SA 4.0; enquadramento adaptado.'
+ },
+ '3deb2fd4-66f1-4bee-abe4-08ba99257171':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/6/69/Richard-rios-benfica-2025.jpg',
+  image_alt:'Richard Ríos fotografado como jogador do Benfica em julho de 2025',
+  image_credit:'Sport Lisboa e Benfica / Wikimedia Commons · CC BY 3.0 · Arquivo 2025',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Richard-rios-benfica-2025.jpg',
+  image_caption:'Imagem de arquivo de Richard Ríos com o Benfica em julho de 2025; NÃO retrata Benfica–Omonia 4–1. SL Benfica / Wikimedia Commons, CC BY 3.0; enquadramento adaptado.'
+ }
+};
 const sportsSpecificArchives={
  '00b58532-b1c5-4e44-86bb-5453c5d54525':{
   image_url:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Chicago_Bulls_vs._Milwaukee_Bucks_April_2023_34_%28in-game_action%29.jpg/1280px-Chicago_Bulls_vs._Milwaukee_Bucks_April_2023_34_%28in-game_action%29.jpg',
@@ -44,7 +67,7 @@ function useCuratedSportsPhoto(article){
  // Keep any original photo specifically commissioned or selected for this article.
  const generic=!!article.image_url&&repeatedStockSportPhoto.test(article.image_url);
  if(!generic)return article;
- const archive=sportsSpecificArchives[article.id];
+ const archive=sportsSpecificArchives[article.id]||sportsSelectedTeamPhotos[article.id];
  if(archive)return {...article,...archive};
  // For all other sports results, prefer the actual two teams and correct score
  // to historically unrelated photos or generic stadium imagery.
