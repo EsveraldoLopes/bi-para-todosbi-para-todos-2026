@@ -37,11 +37,22 @@ function renderList(){
  }
  if(!filtered.length)list.textContent='Nenhum artigo corresponde aos filtros.';
 }
+let audienceRecords=[],audiencePeriod=7;
+function renderAudienceChart(){
+ const chart=$('audience-chart'),caption=$('audience-chart-caption');chart.replaceChildren();
+ const dates=[];const now=new Date();for(let i=audiencePeriod-1;i>=0;i--){const date=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()-i));dates.push(date.toISOString().slice(0,10));}
+ const counts=new Map();for(const r of audienceRecords)if(!r.article_id)counts.set(r.view_date,(counts.get(r.view_date)||0)+Number(r.view_count));
+ const values=dates.map(day=>counts.get(day)||0),max=Math.max(1,...values);const total=values.reduce((sum,n)=>sum+n,0);
+ dates.forEach((day,i)=>{const column=document.createElement('div');column.className='chart-column';const count=document.createElement('span');count.className='chart-value';count.textContent=String(values[i]);const bar=document.createElement('div');bar.className='chart-bar';bar.style.height=(values[i]===0?2:Math.max(6,Math.round(values[i]/max*145)))+'px';bar.title=day+': '+values[i]+' visitas';const label=document.createElement('span');label.className='chart-label';label.textContent=audiencePeriod===7?day.slice(5):((i%Math.ceil(audiencePeriod/10)===0||i===dates.length-1)?day.slice(5):'');column.append(count,bar,label);chart.append(column);});
+ chart.setAttribute('aria-label','Visitas diárias nos últimos '+audiencePeriod+' dias: '+total+' visualizações da página inicial.');
+ caption.textContent=total.toLocaleString('pt-PT')+' visitas à página inicial nos últimos '+audiencePeriod+' dias (UTC). As aberturas de artigos são contabilizadas em separado.';
+}
+for(const button of document.querySelectorAll('[data-period]'))button.onclick=()=>{audiencePeriod=Number(button.dataset.period);for(const b of document.querySelectorAll('[data-period]'))b.setAttribute('aria-pressed',String(b===button));renderAudienceChart();};
 async function loadAudience(){
  const {data,error}=await db.from('daily_views').select('view_date,article_id,view_count').order('view_date',{ascending:false}).limit(5000);
  const box=$('audience-stats'),top=$('top-articles');box.replaceChildren();top.replaceChildren();
  if(error){top.textContent='Não foi possível carregar a audiência: '+error.message;return;}
- const records=data||[],today=new Date().toISOString().slice(0,10),home=records.filter(r=>!r.article_id);
+ const records=data||[];audienceRecords=records;renderAudienceChart();const today=new Date().toISOString().slice(0,10),home=records.filter(r=>!r.article_id);
  const total=home.reduce((sum,r)=>sum+Number(r.view_count),0),todayCount=home.filter(r=>r.view_date===today).reduce((sum,r)=>sum+Number(r.view_count),0);
  const articleViews=records.filter(r=>r.article_id).reduce((sum,r)=>sum+Number(r.view_count),0);
  for(const [label,value] of [['Visitas à página inicial',total],['Visitas hoje (UTC)',todayCount],['Aberturas de artigos',articleViews]]){
