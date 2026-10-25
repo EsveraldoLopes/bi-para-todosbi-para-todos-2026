@@ -67,13 +67,17 @@ async function loadAudience(){
  const records=data||[];audienceRecords=records;renderAudienceChart();const today=new Date().toISOString().slice(0,10),home=records.filter(r=>!r.article_id);
  const total=home.reduce((sum,r)=>sum+Number(r.view_count),0),todayCount=home.filter(r=>r.view_date===today).reduce((sum,r)=>sum+Number(r.view_count),0);
  const articleViews=records.filter(r=>r.article_id).reduce((sum,r)=>sum+Number(r.view_count),0);
- for(const [label,value] of [['Visitas à página inicial',total],['Visitas hoje (UTC)',todayCount],['Aberturas de artigos',articleViews]]){
+ const recent=(days,offset=0)=>records.filter(r=>{const n=Math.floor((Date.parse(today+'T00:00:00Z')-Date.parse(r.view_date+'T00:00:00Z'))/86400000);return n>=offset&&n<offset+days;}).reduce((acc,row)=>acc+Number(row.view_count),0);
+ const last7=recent(7),previous7=recent(7,7),todayAll=records.filter(r=>r.view_date===today).reduce((acc,row)=>acc+Number(row.view_count),0);
+ const growth=previous7>0?Math.round((last7-previous7)/previous7*100):null;
+ for(const [label,value] of [['Visualizações hoje (todas as páginas)',todayAll],['Visualizações nos últimos 7 dias',last7],['Comparação com os 7 dias anteriores',growth===null?'Sem base anterior':(growth>0?'+':'')+growth+'%'],['Visitas à página inicial',total],['Aberturas de artigos',articleViews]]){
+
   const card=document.createElement('div');card.className='metric';const strong=document.createElement('strong');strong.textContent=value.toLocaleString('pt-PT');const name=document.createElement('span');name.textContent=label;card.append(strong,name);box.append(card);
  }
  const byId=new Map();for(const row of records)if(row.article_id)byId.set(row.article_id,(byId.get(row.article_id)||0)+Number(row.view_count));
  const ranked=[...byId].sort((a,b)=>b[1]-a[1]).slice(0,10);
  if(!ranked.length){top.textContent='Ainda não existem visualizações de artigos registadas.';return;}
- const list=document.createElement('ol');for(const [id,count] of ranked){const item=document.createElement('li');item.textContent=(rows.find(r=>r.id===id)?.title||'Artigo indisponível')+' — '+count.toLocaleString('pt-PT')+' visualizações';list.append(item);}top.append(list);
+ const list=document.createElement('ol');for(const [id,count] of ranked){const item=document.createElement('li');const article=rows.find(r=>r.id===id);const link=document.createElement('a');link.href='https://www.jingolokela.com/noticia/'+encodeURIComponent(id);link.target='_blank';link.rel='noopener noreferrer';link.textContent=article?.title||'Notícia indisponível';item.append(link,' — '+count.toLocaleString('pt-PT')+' visualizações');list.append(item);}top.append(list);
 }
 $('audience-reload').onclick=loadAudience;
 async function load(){
