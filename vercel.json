@@ -48,6 +48,17 @@
   ],
   "redirects": [
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "bi-para-todosbi-para-todos-2026.vercel.app"
+        }
+      ],
+      "destination": "https://www.jingolokela.com/",
+      "statusCode": 301
+    },
+    {
       "source": "/:path*",
       "has": [
         {
