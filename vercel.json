@@ -45,5 +45,18 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "bi-para-todosbi-para-todos-2026.vercel.app"
+        }
+      ],
+      "destination": "https://www.jingolokela.com/:path*",
+      "statusCode": 301
+    }
   ]
 }
