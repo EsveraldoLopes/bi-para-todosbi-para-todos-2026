@@ -1,5 +1,5 @@
 'use strict';
-const ORIGIN='https://bi-para-todosbi-para-todos-2026.vercel.app';
+const ORIGIN='https://www.jingolokela.com';
 const SUPABASE_URL=process.env.SUPABASE_URL||'https://nampznzziskqwyjzvvob.supabase.co';
 const SUPABASE_KEY=process.env.SUPABASE_ANON_KEY||'sb_publishable_9u18qsxaBtaHBTe21u-gFw_RzZM2h__';
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
