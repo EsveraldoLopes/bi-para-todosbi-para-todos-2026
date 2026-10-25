@@ -94,3 +94,6 @@
 .carousel-backdrop.sports-teams-art .sports-result-score{font-size:clamp(21px,3vw,35px)}
 .sports-teams-art .sports-teams-logo span:not(.sports-team-monogram){font-size:clamp(12px,1.15vw,17px);font-weight:800;overflow-wrap:anywhere;text-align:center}
 @media(max-width:600px){.art.sports-teams-art .sports-result-score{font-size:22px}.sports-teams-strip{gap:7px}.sports-teams-art .sports-teams-logo span:not(.sports-team-monogram){font-size:12px}}
+
+/* Partilha editorial: opções acessíveis e adaptáveis ao ecrã */
+.share-tools{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:25px}.share-tools .share{display:inline-flex;align-items:center;margin:0;padding:10px 14px;text-decoration:none;white-space:nowrap}.share-tools a:first-child{background:#16844c}.share-tools a:nth-child(2){background:#245da6}.share-tools a:nth-child(3){background:#217caa}.share-tools button{background:var(--navy)}
