@@ -34,6 +34,21 @@ const repeatedStockSportPhoto=/photo-1771344164616-3582e4dc2f07|photo-1549210194
 // A photograph from a different match is explicitly marked as archive in its caption.
 // No training sessions, portraits or press presentations.
 const sportsSelectedTeamPhotos={ 
+ '86d90ebf-8c70-44e4-9eb5-6fdd43d5e367':{
+  image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kylian_Mbappe_at_Real_Madrid%27s_game_versus_Juventus_Turin_on_22_October_2025.jpeg',
+  image_alt:'Kylian Mbappé ao serviço do Real Madrid num jogo diante da Juventus em outubro de 2025',
+  image_credit:'SdHb / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2025',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Kylian_Mbappe_at_Real_Madrid%27s_game_versus_Juventus_Turin_on_22_October_2025.jpeg',
+  image_caption:'Kylian Mbappé num jogo do Real Madrid contra a Juventus, a 22 de outubro de 2025. Fotografia de arquivo: não representa o Clássico mencionado na notícia. SdHb / Wikimedia Commons, CC BY-SA 4.0.'
+ },
+ '73ccbb07-fe6a-47ea-9e19-8d27d59c9b89':{
+  image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Luka_Doncic_%2855095317361%29_%28cropped%29.jpg',
+  image_alt:'Luka Dončić pelos Los Angeles Lakers em jogo frente aos Cleveland Cavaliers em janeiro de 2026',
+  image_credit:'Erik Drost / Wikimedia Commons · CC BY 4.0 · Arquivo 2026',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Luka_Doncic_(55095317361)_(cropped).jpg',
+  image_caption:'Luka Dončić dos Lakers num jogo contra Cleveland em janeiro de 2026. Fotografia de arquivo: não corresponde ao jogo Lakers–Jazz noticiado. Erik Drost / Wikimedia Commons, CC BY 4.0.'
+ },
+
  'ca87701f-6823-4ea8-bda5-87029c8ee646':{
   image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Marcelino_Nunez.png',
   image_alt:'Marcelino Núñez com a camisola do Ipswich Town em fotografia de 2025',
