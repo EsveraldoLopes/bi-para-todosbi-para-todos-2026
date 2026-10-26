@@ -271,8 +271,8 @@ void displayApprovedAds();
  async function show(code){const entry=find(code);if(!entry)return;selected=code;const id=++lastId;setContinent(entry.region,code);more.href=url(entry,'search');
   const cached=cache.get(code);if(cached&&Date.now()-cached.time<900000){render(cached.items);status.textContent='Fonte: Google Notícias / jornais · '+entry.name+' · atualização periódica';return;}
   root.textContent='A consultar manchetes económicas de '+entry.name+'…';
-  try{const rss=url(entry,'rss/search'),endpoint='https://api.rss2json.com/v1/api.json?'+new URLSearchParams({rss_url:rss});const response=await fetch(endpoint,{signal:AbortSignal.timeout(10000)});
-   if(!response.ok)throw Error('RSS indisponível');const result=await response.json();if(result.status!=='ok'||!Array.isArray(result.items))throw Error('Sem dados');
+  try{const endpoint='/api/economy?'+new URLSearchParams({country:code});const response=await fetch(endpoint,{signal:AbortSignal.timeout(10000)});
+   if(!response.ok)throw Error('RSS indisponível');const result=await response.json();if(!Array.isArray(result.items))throw Error('Sem dados');
    if(id!==lastId)return;const items=result.items.filter(x=>x.title&&x.link);if(!render(items))throw Error('Sem manchetes');cache.set(code,{time:Date.now(),items});status.textContent='Fonte: Google Notícias / jornais originais · '+entry.name+' · intervalo de consulta: 15 min';
   }catch{if(id!==lastId)return;root.textContent='Não foi possível obter manchetes verificadas de '+entry.name+' nesta consulta. Abra a ligação abaixo para ver as notícias na fonte.';status.textContent='Consulta externa indisponível; não são exibidas notícias fictícias.';}
  }
