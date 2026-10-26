@@ -16,7 +16,7 @@ module.exports=async function handler(req,res){
    entries.push(...batch.filter(a=>/^[a-f0-9-]{36}$/i.test(a.id)&&Number.isFinite(Date.parse(a.published_at))));
    if(batch.length<1000)break;offset+=batch.length;
   }
-  const pages=['/','/anunciar.html'];
+  const pages=['/','/anunciar.html','/sobre.html','/privacidade.html','/contactos.html'];
   const urls=pages.map(path=>'  <url><loc>'+ROOT+path+'</loc></url>');
   for(const a of entries){urls.push('  <url><loc>'+ROOT+'/noticia/'+encodeURIComponent(a.id)+'</loc><lastmod>'+new Date(a.published_at).toISOString().slice(0,10)+'</lastmod></url>');}
   res.statusCode=200;res.end('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+urls.join('\n')+'\n</urlset>\n');
