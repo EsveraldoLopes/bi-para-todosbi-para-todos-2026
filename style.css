@@ -97,3 +97,10 @@
 
 /* Partilha editorial: opções acessíveis e adaptáveis ao ecrã */
 .share-tools{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:25px}.share-tools .share{display:inline-flex;align-items:center;margin:0;padding:10px 14px;text-decoration:none;white-space:nowrap}.share-tools a:first-child{background:#16844c}.share-tools a:nth-child(2){background:#245da6}.share-tools a:nth-child(3){background:#217caa}.share-tools button{background:var(--navy)}
+
+/* Ligações oficiais ao Facebook e Instagram: cabeçalho e rodapé. */
+.masthead{gap:12px}.masthead p{margin-right:20px}
+.social-links{display:flex;align-items:center;flex-wrap:wrap;gap:9px}.social-link{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px;border:1px solid #c7cfdc;border-radius:999px;color:#243656;background:#fff;text-decoration:none;font-size:12px;font-weight:700;line-height:1.2;transition:background .15s,border-color .15s,transform .15s}.social-link svg{width:19px;height:19px;flex:none}.social-link:hover{background:#e7edf8;border-color:#a4b4d0;transform:translateY(-1px)}.social-link:focus-visible{outline:3px solid #315acc;outline-offset:3px}.header-social-links{flex:0 0 auto;gap:7px}.header-social-links .social-link{width:40px;height:40px;padding:0}.footer-social-links{justify-content:center}
+@media(max-width:1100px){.masthead{flex-wrap:wrap}.masthead p{margin-right:auto}}
+@media(max-width:750px){.masthead .header-social-links{justify-content:flex-end;width:100%;order:5}.footer-social-links{justify-content:flex-start}}
+@media(max-width:500px){.masthead .header-social-links{justify-content:flex-start}}
