@@ -142,8 +142,12 @@ function imageUrl(value){const url=safeUrl(value);if(!url)return null;const u=ne
 function articleImage(article,eager=false){const url=imageUrl(article.image_url);if(!url)return null;const img=document.createElement('img');img.src=url.href;img.alt=article.image_alt||'Imagem relacionada com a notícia';img.loading=eager?'eager':'lazy';img.decoding='async';img.width=1200;img.height=800;img.referrerPolicy='no-referrer';if(eager)img.fetchPriority='high';return img;}
 function readerImage(article){const fig=$('reader-image');fig.replaceChildren();const img=articleImage(article,true);fig.hidden=!img;if(!img)return;img.addEventListener('error',()=>{fig.hidden=true;},{once:true});const cap=document.createElement('figcaption');cap.textContent=article.image_caption||(article.image_credit?'Fotografia editorial':'Imagem ilustrativa.');if(article.image_credit){cap.append(' · ');const source=safeUrl(article.image_source_url);const credit=document.createElement(source?'a':'span');credit.textContent=article.image_credit;if(source){credit.href=source;credit.target='_blank';credit.rel='noopener noreferrer';}cap.append(credit);}fig.append(img,cap);}
 
+// Preferencia local exclusiva deste navegador; evita contar consultas editoriais futuras.
+// Acesso manual: ?modo=redacao ativa, ?modo=leitor desativa. Nao identifica pessoas.
+try{const mode=new URL(location.href).searchParams.get('modo');if(mode==='redacao')localStorage.setItem('jingolokela_internal_visit','1');if(mode==='leitor')localStorage.removeItem('jingolokela_internal_visit');}catch{}
+function isInternalVisit(){try{return localStorage.getItem('jingolokela_internal_visit')==='1';}catch{return false;}}
 async function trackView(articleId=null){
- if(!hasConfig)return;
+ if(!hasConfig||isInternalVisit())return;
  try{
   const endpoint=window.PORTAL_CONFIG.supabaseUrl+'/rest/v1/rpc/record_page_view';
   await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','apikey':window.PORTAL_CONFIG.supabaseAnonKey},body:JSON.stringify({p_article_id:articleId})});
