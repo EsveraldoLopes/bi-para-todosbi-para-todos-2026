@@ -139,3 +139,6 @@
 
 /* Selecção de países por continente: evita dezenas de botões e mantém legibilidade */
 .economy-region-controls{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:9px 12px;margin:16px 0}.economy-region-controls label{font-size:11px;font-weight:700;color:var(--muted)}.economy-region-controls select{width:100%;min-width:0;padding:9px 12px;background:#fff;border:1px solid #d5deec;border-radius:9px;color:var(--ink);font-size:12px}.economy-auto-note{font-size:11px;color:var(--muted)}.economy-auto-note button{background:none;border:0;text-decoration:underline;color:var(--blue);font-size:11px;padding:3px}.economy-story:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+
+/* Edição noticiosa: data da última consulta e atualização manual */
+.editorial-update{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:-6px 0 18px;color:var(--muted);font-size:11px}.editorial-update button{background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 12px;color:var(--navy);font-size:11px;font-weight:bold}.editorial-update button:hover{border-color:var(--blue)}.editorial-update button:disabled{opacity:.6;cursor:wait}
