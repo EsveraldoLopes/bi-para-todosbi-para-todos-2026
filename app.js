@@ -243,45 +243,40 @@ if(followShareButton){
 setSlides();void trackView();load();
 void displayApprovedAds();
 
-/* Cobertura económica por continente, fontes externas verificáveis, rotação automática. */
+/* Destaques económicos de cinco mercados de referência, rotação automática. */
 (()=>{
  const root=document.getElementById('economy-news');if(!root)return;
- const continent=document.getElementById('economy-continent'),country=document.getElementById('economy-country');
- const pause=document.getElementById('economy-pause'),more=document.getElementById('economy-more'),status=document.getElementById('economy-status');
- const countries={
- africa:[['Angola','AO'],['África do Sul','ZA'],['Namíbia','NA'],['República Democrática do Congo','CD'],['Congo','CG'],['Ruanda','RW'],['Nigéria','NG'],['Argélia','DZ'],['Quénia','KE'],['Egito','EG'],['Marrocos','MA'],['Gana','GH'],['Moçambique','MZ']],
- europe:[['Portugal','PT'],['Reino Unido','GB'],['Alemanha','DE'],['França','FR'],['Bélgica','BE'],['Países Baixos','NL'],['Espanha','ES'],['Itália','IT'],['Suíça','CH'],['Polónia','PL']],
- america:[['Brasil','BR'],['Estados Unidos','US'],['Canadá','CA'],['México','MX'],['Argentina','AR'],['Chile','CL'],['Colômbia','CO']],
- asia:[['China','CN'],['Índia','IN'],['Japão','JP'],['Coreia do Sul','KR'],['Singapura','SG'],['Emirados Árabes Unidos','AE'],['Arábia Saudita','SA'],['Indonésia','ID']],
- oceania:[['Austrália','AU'],['Nova Zelândia','NZ']]
- };
- const locale={AO:'pt-PT',PT:'pt-PT',BR:'pt-BR',US:'en-US',GB:'en-GB',CA:'en-CA'};
- const cache=new Map();let selected='AO',lastId=0,rotating=true,rotation=null;
- function find(code){for(const [region,entries] of Object.entries(countries)){const item=entries.find(x=>x[1]===code);if(item)return {region,name:item[0],code};}return null;}
- function newsQuery(entry){const language=locale[entry.code]||'en-US';const lang=language.split('-')[0];const q=(lang==='pt'?'economia negócios investimentos petróleo inflação ':'economy business investment markets inflation ')+entry.name;
-  return {q,hl:language,gl:entry.code,ceid:entry.code+':'+(lang==='pt'?'pt':lang)};}
- function url(entry,kind){return 'https://news.google.com/'+kind+'?'+new URLSearchParams(newsQuery(entry));}
- function setContinent(region,code){continent.value=region;country.replaceChildren();for(const [name,id] of countries[region]){const option=document.createElement('option');option.value=id;option.textContent=name;country.append(option);}country.value=code;}
- function render(items){root.replaceChildren();let shown=0;for(const item of items){if(shown>=5)break;if(!item.title||!item.link)continue;
-  let u;try{u=new URL(item.link);if(u.protocol!=='https:'||u.hostname!=='news.google.com')continue;}catch{continue;}
-  const a=document.createElement('a');a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';a.className='economy-story';
-  const t=document.createElement('strong');t.textContent=String(item.title).slice(0,220);
-  const m=document.createElement('small');const date=Date.parse(item.pubDate);m.textContent=(item.author?String(item.author).slice(0,65)+' · ':'')+(Number.isFinite(date)?new Intl.DateTimeFormat('pt-PT',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(date):'Consultar publicação');
-  a.append(t,m);root.append(a);shown++;}return shown;}
- async function show(code){const entry=find(code);if(!entry)return;selected=code;const id=++lastId;setContinent(entry.region,code);more.href=url(entry,'search');
-  const cached=cache.get(code);if(cached&&Date.now()-cached.time<900000){render(cached.items);status.textContent='Fonte: Google Notícias / jornais · '+entry.name+' · atualização periódica';return;}
-  root.textContent='A consultar manchetes económicas de '+entry.name+'…';
-  try{const endpoint='/api/economy?'+new URLSearchParams({country:code});const response=await fetch(endpoint,{signal:AbortSignal.timeout(10000)});
-   if(!response.ok)throw Error('RSS indisponível');const result=await response.json();if(!Array.isArray(result.items))throw Error('Sem dados');
-   if(id!==lastId)return;const items=result.items.filter(x=>x.title&&x.link);if(!render(items))throw Error('Sem manchetes');cache.set(code,{time:Date.now(),items});status.textContent='Fonte: Google Notícias / jornais originais · '+entry.name+' · intervalo de consulta: 15 min';
-  }catch{if(id!==lastId)return;root.textContent='Não foi possível obter manchetes verificadas de '+entry.name+' nesta consulta. Abra a ligação abaixo para ver as notícias na fonte.';status.textContent='Consulta externa indisponível; não são exibidas notícias fictícias.';}
+ const tabs=[...document.querySelectorAll('[data-economy]')],more=document.getElementById('economy-more'),status=document.getElementById('economy-status'),pause=document.getElementById('economy-pause');
+ const entries={AO:'Angola',PT:'Portugal',US:'Estados Unidos',BR:'Brasil',GB:'Reino Unido'};
+ const cache=new Map(),order=Object.keys(entries);let current='AO',requestId=0,rotating=true,rotation;
+ function googleSearch(code){const q='economia '+entries[code];return 'https://news.google.com/search?'+new URLSearchParams({q});}
+ function draw(items){root.replaceChildren();let count=0;
+  for(const item of items){if(count===5)break;if(!item.title||!item.link)continue;
+   let u;try{u=new URL(item.link);if(u.protocol!=='https:'||u.hostname!=='news.google.com')continue;}catch{continue;}
+   const a=document.createElement('a');a.className='economy-story';a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';
+   const title=document.createElement('strong');title.textContent=item.title.slice(0,220);
+   const meta=document.createElement('small');const date=Date.parse(item.pubDate);
+   meta.textContent=(item.author?item.author+' · ':'')+(Number.isFinite(date)?new Intl.DateTimeFormat('pt-PT',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(date):'Consultar fonte');
+   a.append(title,meta);root.append(a);count++;
+  }return count;
  }
- function stop(){if(rotation)clearInterval(rotation);rotation=null;}
- function begin(){stop();if(!rotating)return;rotation=setInterval(()=>{if(document.hidden)return;const order=['AO','ZA','NA','CD','RW','NG','DZ','PT','GB','DE','FR','BE','NL','BR','US','CA','CN','IN','JP','AU'];
-  const next=order[(order.indexOf(selected)+1)%order.length];void show(next);},25000);}
- continent.addEventListener('change',()=>{void show(countries[continent.value][0][1]);begin();});
- country.addEventListener('change',()=>{void show(country.value);begin();});
- pause.addEventListener('click',()=>{rotating=!rotating;pause.textContent=rotating?'Pausar rotação':'Retomar rotação';pause.setAttribute('aria-pressed',String(!rotating));begin();});
- document.addEventListener('visibilitychange',()=>{if(!document.hidden&&selected)void show(selected);});
- void show('AO');begin();
+ async function show(code){
+  if(!entries[code])return;current=code;const id=++requestId;
+  tabs.forEach(t=>t.setAttribute('aria-pressed',String(t.dataset.economy===code)));
+  more.href=googleSearch(code);
+  const old=cache.get(code);
+  if(old&&Date.now()-old.time<900000){draw(old.items);status.textContent='Jornais económicos · '+entries[code]+' · consulta periódica';return;}
+  root.textContent='A consultar os principais jornais económicos de '+entries[code]+'…';
+  try{const response=await fetch('/api/economy?'+new URLSearchParams({country:code}),{signal:AbortSignal.timeout(10000)});
+   if(!response.ok)throw Error('Fonte indisponível');const data=await response.json();
+   if(!Array.isArray(data.items))throw Error('Sem resultados');if(id!==requestId)return;
+   if(!draw(data.items))throw Error('Sem manchetes');cache.set(code,{items:data.items,time:Date.now()});
+   status.textContent='Manchetes de jornais económicos · '+entries[code]+' · atualização de 15 em 15 minutos';
+  }catch{if(id!==requestId)return;root.textContent='As manchetes deste país estão temporariamente indisponíveis. Consulte os jornais pela ligação abaixo.';status.textContent='Consulta externa indisponível.';}
+ }
+ function start(){clearInterval(rotation);if(rotating)rotation=setInterval(()=>{if(!document.hidden)void show(order[(order.indexOf(current)+1)%order.length]);},25000);}
+ tabs.forEach(t=>t.addEventListener('click',()=>{void show(t.dataset.economy);start();}));
+ pause.addEventListener('click',()=>{rotating=!rotating;pause.textContent=rotating?'Pausar rotação':'Retomar rotação';pause.setAttribute('aria-pressed',String(!rotating));start();});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)void show(current);});
+ void show(current);start();
 })();
