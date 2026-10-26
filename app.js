@@ -34,6 +34,29 @@ const repeatedStockSportPhoto=/photo-1771344164616-3582e4dc2f07|photo-1549210194
 // A photograph from a different match is explicitly marked as archive in its caption.
 // No training sessions, portraits or press presentations.
 const sportsSelectedTeamPhotos={ 
+ 'a708d825-c1d6-44c1-84b3-b7d258a9994c':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/8/8d/Giannis_Antetokounmpo_Free_Throw_2026_Denver.jpg',
+  image_alt:'Giannis Antetokounmpo, dos Milwaukee Bucks, prepara um lance livre frente aos Denver Nuggets em janeiro de 2026',
+  image_credit:'MhcL947 / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2026',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Giannis_Antetokounmpo_Free_Throw_2026_Denver.jpg',
+  image_caption:'Giannis Antetokounmpo, dos Bucks, durante um encontro com os Nuggets em janeiro de 2026. Fotografia de arquivo, não representa a partida contra Philadelphia mencionada na notícia. MhcL947 / Wikimedia Commons, CC BY-SA 4.0.'
+ },
+
+ '86d90ebf-8c70-44e4-9eb5-6fdd43d5e367':{
+  image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kylian_Mbappe_at_Real_Madrid%27s_game_versus_Juventus_Turin_on_22_October_2025.jpeg',
+  image_alt:'Kylian Mbappé ao serviço do Real Madrid num jogo diante da Juventus em outubro de 2025',
+  image_credit:'SdHb / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2025',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Kylian_Mbappe_at_Real_Madrid%27s_game_versus_Juventus_Turin_on_22_October_2025.jpeg',
+  image_caption:'Kylian Mbappé num jogo do Real Madrid contra a Juventus, a 22 de outubro de 2025. Fotografia de arquivo: não representa o Clássico mencionado na notícia. SdHb / Wikimedia Commons, CC BY-SA 4.0.'
+ },
+ '73ccbb07-fe6a-47ea-9e19-8d27d59c9b89':{
+  image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Luka_Doncic_%2855095317361%29_%28cropped%29.jpg',
+  image_alt:'Luka Dončić pelos Los Angeles Lakers em jogo frente aos Cleveland Cavaliers em janeiro de 2026',
+  image_credit:'Erik Drost / Wikimedia Commons · CC BY 4.0 · Arquivo 2026',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Luka_Doncic_(55095317361)_(cropped).jpg',
+  image_caption:'Luka Dončić dos Lakers num jogo contra Cleveland em janeiro de 2026. Fotografia de arquivo: não corresponde ao jogo Lakers–Jazz noticiado. Erik Drost / Wikimedia Commons, CC BY 4.0.'
+ },
+
  'ca87701f-6823-4ea8-bda5-87029c8ee646':{
   image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Marcelino_Nunez.png',
   image_alt:'Marcelino Núñez com a camisola do Ipswich Town em fotografia de 2025',
@@ -105,14 +128,17 @@ function useCuratedSportsPhoto(article){
  if(article.category!=='Desporto')return article;
  // Keep any original photo specifically commissioned or selected for this article.
  const generic=!!article.image_url&&repeatedStockSportPhoto.test(article.image_url);
- if(!generic)return article;
+ // Include an individually curated sports archive when the source has no photo,
+ // not just when a generic stock image needs replacing.
+ const missing=!article.image_url||!imageUrl(article.image_url);
+ if(!generic&&!missing)return article;
  const archive=sportsSpecificArchives[article.id]||sportsSelectedTeamPhotos[article.id];
- if(archive)return {...article,...archive};
+ if(archive&&imageUrl(archive.image_url))return {...article,...archive};
  // For all other sports results, prefer the actual two teams and correct score
  // to historically unrelated photos or generic stadium imagery.
  return {...article,image_url:null,image_credit:null,image_alt:null,image_source_url:null,image_caption:null};
 }
-function imageUrl(value){const url=safeUrl(value);if(!url)return null;const u=new URL(url);return ['images.unsplash.com','images.pexels.com','upload.wikimedia.org','thumb.wikimedia.org','commons.wikimedia.org'].includes(u.hostname)?u:null;}
+function imageUrl(value){const url=safeUrl(value);if(!url)return null;const u=new URL(url);const trusted=['images.unsplash.com','images.pexels.com','upload.wikimedia.org','thumb.wikimedia.org','commons.wikimedia.org'];if(trusted.includes(u.hostname))return u;try{const project=new URL(window.PORTAL_CONFIG?.supabaseUrl);if(u.origin===project.origin&&u.pathname.startsWith('/storage/v1/object/public/'))return u;}catch{}return null;}
 function articleImage(article,eager=false){const url=imageUrl(article.image_url);if(!url)return null;const img=document.createElement('img');img.src=url.href;img.alt=article.image_alt||'Imagem relacionada com a notícia';img.loading=eager?'eager':'lazy';img.decoding='async';img.width=1200;img.height=800;img.referrerPolicy='no-referrer';if(eager)img.fetchPriority='high';return img;}
 function readerImage(article){const fig=$('reader-image');fig.replaceChildren();const img=articleImage(article,true);fig.hidden=!img;if(!img)return;img.addEventListener('error',()=>{fig.hidden=true;},{once:true});const cap=document.createElement('figcaption');cap.textContent=article.image_caption||(article.image_credit?'Fotografia editorial':'Imagem ilustrativa.');if(article.image_credit){cap.append(' · ');const source=safeUrl(article.image_source_url);const credit=document.createElement(source?'a':'span');credit.textContent=article.image_credit;if(source){credit.href=source;credit.target='_blank';credit.rel='noopener noreferrer';}cap.append(credit);}fig.append(img,cap);}
 
@@ -131,10 +157,11 @@ function relatedReading(article){
  for(const related of ranked){const button=document.createElement('button');button.type='button';button.className='related-link';const label=document.createElement('span');label.className='related-category';label.textContent=related.category;const title=document.createElement('strong');title.textContent=related.title;button.append(label,title);button.onclick=()=>{openArticle(related);reader.scrollTo({top:0,behavior:'smooth'});};container.append(button);}
 }
 function openArticle(article){if(!article.demo)void trackView(article.id);const permalink=$('article-permalink');permalink.hidden=!!article.demo;permalink.href=article.demo?'#':'/noticia/'+encodeURIComponent(article.id);relatedReading(article);readerImage(article);$('reader-title').textContent=article.title;$('reader-category').textContent=article.category;$('reader-meta').textContent=article.demo?'Apresentação editorial · Redação Jingolokela Para Todos':`${article.author||'Redação Jingolokela Para Todos'} · ${new Date(article.published_at).toLocaleDateString('pt-PT')}`;$('reader-body').textContent=article.body||article.summary;const url=safeUrl(article.source_url);$('reader-source').hidden=!url;if(url)$('reader-source').href=url;const shareRoot=$('share-tools');shareRoot.hidden=!!article.demo;if(!article.demo){const full=new URL('/noticia/'+encodeURIComponent(article.id),'https://www.jingolokela.com').href;const url=encodeURIComponent(full);const title=encodeURIComponent(article.title+' — Jingolokela Para Todos');$('share-whatsapp').href='https://api.whatsapp.com/send?text='+title+'%20'+url;$('share-facebook').href='https://www.facebook.com/sharer/sharer.php?u='+url;$('share-telegram').href='https://t.me/share/url?url='+url+'&text='+title;}$('share-status').textContent='';$('share').onclick=async()=>{const link=new URL('/noticia/'+encodeURIComponent(article.id),'https://www.jingolokela.com');try{await navigator.clipboard.writeText(link.href);$('share-status').textContent='Ligação copiada.';}catch{$('share-status').textContent='Copie esta ligação: '+link.href;}};if(!reader.open)reader.showModal();syncSlides();}
-function render(){const q=normalize($('search').value);const filtered=articles.filter(a=>(selected==='Todas'||a.category===selected)&&normalize(`${a.title} ${a.summary} ${a.category}`).includes(q));updateSectionUI(filtered.length);$('articles').replaceChildren();$('empty').hidden=loading||filtered.length>0;$('show-all').hidden=filtered.length<=6||showAll;const ordered=selected==='Todas'&&!q?[...filtered.filter(isLeadArticle),...filtered.filter(a=>!isLeadArticle(a))]:filtered;const visible=showAll?ordered:ordered.slice(0,6);visible.forEach((a,i)=>{const card=document.createElement('article');card.className='article';const art=document.createElement('div');art.className='art tone'+(sections.indexOf(a.category)%6);art.setAttribute('aria-hidden','true');const icon=document.createElement('span');icon.className='art-symbol';icon.textContent=({Angola:'AO',Mundo:'↗',Diáspora:'↔',Desporto:'◎',Tecnologia:'✳',Oportunidades:'+'})[a.category]||'↗';art.append(icon);const label=document.createElement('span');label.className='label';label.textContent=a.category.toUpperCase();const number=document.createElement('span');number.className='number';number.textContent='NPT / '+String(i+1).padStart(2,'0');art.append(label,number);art.dataset.editorialPhoto=a.image_url&&a.image_credit&&a.image_source_url?'true':'false';const photo=articleImage(a,i===0);if(photo){art.classList.add('has-photo');art.removeAttribute('aria-hidden');const badge=document.createElement('span');badge.className='photo-badge';badge.textContent=a.image_caption?.toLowerCase().includes('arquivo')?'FOTOGRAFIA DE ARQUIVO':a.image_credit?'FOTOGRAFIA · '+a.image_credit:'IMAGEM EDITORIAL';art.append(photo,badge);photo.addEventListener('error',()=>{photo.remove();badge.remove();art.classList.remove('has-photo');art.dataset.editorialPhoto='false';art.setAttribute('aria-hidden','true');},{once:true});}const category=document.createElement('p');category.className='eyebrow';category.textContent=a.category;const h=document.createElement('h3');const b=document.createElement('button');b.textContent=a.title;b.onclick=()=>openArticle(a);h.append(b);const summary=document.createElement('p');summary.textContent=a.summary;const meta=document.createElement('span');meta.className='meta';meta.textContent=a.demo?'APRESENTAÇÃO EDITORIAL':'PUBLICADO · '+new Date(a.published_at).toLocaleDateString('pt-PT');card.append(art,category,h,summary,meta);$('articles').append(card);});}
+function render(){const q=normalize($('search').value);const filtered=articles.filter(a=>(selected==='Todas'||a.category===selected)&&normalize(`${a.title} ${a.summary} ${a.category}`).includes(q));updateSectionUI(filtered.length);$('articles').replaceChildren();$('empty').hidden=loading||filtered.length>0;$('show-all').hidden=filtered.length<=6||showAll;const ordered=[...filtered].sort((a,b)=>(Date.parse(b.published_at)||0)-(Date.parse(a.published_at)||0));const visible=showAll?ordered:ordered.slice(0,6);visible.forEach((a,i)=>{const card=document.createElement('article');card.className='article';const art=document.createElement('div');art.className='art tone'+(sections.indexOf(a.category)%6);art.setAttribute('aria-hidden','true');const icon=document.createElement('span');icon.className='art-symbol';icon.textContent=({Angola:'AO',Mundo:'↗',Diáspora:'↔',Desporto:'◎',Tecnologia:'✳',Oportunidades:'+'})[a.category]||'↗';art.append(icon);const label=document.createElement('span');label.className='label';label.textContent=a.category.toUpperCase();const number=document.createElement('span');number.className='number';number.textContent='NPT / '+String(i+1).padStart(2,'0');art.append(label,number);art.dataset.editorialPhoto=a.image_url&&a.image_credit&&a.image_source_url?'true':'false';const photo=articleImage(a,i===0);if(photo){art.classList.add('has-photo');art.removeAttribute('aria-hidden');const badge=document.createElement('span');badge.className='photo-badge';badge.textContent=a.image_caption?.toLowerCase().includes('arquivo')?'FOTOGRAFIA DE ARQUIVO':a.image_credit?'FOTOGRAFIA · '+a.image_credit:'IMAGEM EDITORIAL';art.append(photo,badge);photo.addEventListener('error',()=>{photo.remove();badge.remove();art.classList.remove('has-photo');art.dataset.editorialPhoto='false';art.setAttribute('aria-hidden','true');},{once:true});}const category=document.createElement('p');category.className='eyebrow';category.textContent=a.category;const h=document.createElement('h3');const b=document.createElement('button');b.textContent=a.title;b.onclick=()=>openArticle(a);h.append(b);const summary=document.createElement('p');summary.textContent=a.summary;const meta=document.createElement('span');meta.className='meta';meta.textContent=a.demo?'APRESENTAÇÃO EDITORIAL':'PUBLICADO · '+new Date(a.published_at).toLocaleDateString('pt-PT');card.append(art,category,h,summary,meta);$('articles').append(card);});}
 function fromHash(){if(location.hash.startsWith('#artigo=')){try{const id=decodeURIComponent(location.hash.slice(8));const a=articles.find(x=>String(x.id)===id);if(a)openArticle(a);}catch{}}}
 $('search').addEventListener('input',()=>{showAll=false;render();});$('show-all').onclick=()=>{showAll=true;render();};$('close-reader').onclick=()=>reader.close();window.addEventListener('hashchange',fromHash);render();
-async function load(){const cfg=window.PORTAL_CONFIG||{};if(!cfg.supabaseUrl||!cfg.supabaseAnonKey){$('notice').textContent='Os artigos abaixo apresentam a linha editorial. Não são notícias de atualidade.';setSlides();fromHash();return;}try{const base=safeUrl(cfg.supabaseUrl);if(!base)throw Error('URL inválida');const url=new URL('/rest/v1/articles',base);url.search=new URLSearchParams({select:'id,title,summary,body,category,author,source_url,published_at,image_url,image_alt,image_credit,image_source_url,image_caption',published:'eq.true',published_at:'lte.'+new Date().toISOString(),order:'published_at.desc',limit:'60'});const res=await fetch(url,{headers:{apikey:cfg.supabaseAnonKey,...(cfg.supabaseAnonKey.startsWith('sb_publishable_')?{}:{Authorization:'Bearer '+cfg.supabaseAnonKey})},signal:AbortSignal.timeout(10000)});if(!res.ok)throw Error('Falha de leitura');const rows=await res.json();loading=false;articles=rows.filter(a=>a.id&&typeof a.title==='string'&&typeof a.summary==='string'&&typeof a.body==='string'&&sections.includes(a.category)&&a.category!=='Todas'&&Number.isFinite(Date.parse(a.published_at))).map(useCuratedSportsPhoto);$('notice').textContent=articles.length?'Artigos publicados pela redação. Consulte as fontes no final de cada leitura.':'A redação está a preparar as primeiras notícias. Volte em breve.';render();setSlides();fromHash();}catch{loading=false;articles=examples;render();setSlides();$('notice').textContent='Não foi possível carregar as notícias. Mostramos apenas a apresentação editorial. Tente novamente mais tarde.';fromHash();}}
+let editorialLoading=false;
+async function load(){if(editorialLoading)return;editorialLoading=true;const refreshButton=$('editorial-refresh');if(refreshButton)refreshButton.disabled=true;const cfg=window.PORTAL_CONFIG||{};if(!cfg.supabaseUrl||!cfg.supabaseAnonKey){$('notice').textContent='Os artigos abaixo apresentam a linha editorial. Não são notícias de atualidade.';setSlides();fromHash();editorialLoading=false;if(refreshButton)refreshButton.disabled=false;return;}try{const base=safeUrl(cfg.supabaseUrl);if(!base)throw Error('URL inválida');const url=new URL('/rest/v1/articles',base);url.search=new URLSearchParams({select:'id,title,summary,body,category,author,source_url,published_at,image_url,image_alt,image_credit,image_source_url,image_caption',published:'eq.true',published_at:'lte.'+new Date().toISOString(),order:'published_at.desc',limit:'60'});const res=await fetch(url,{headers:{apikey:cfg.supabaseAnonKey,...(cfg.supabaseAnonKey.startsWith('sb_publishable_')?{}:{Authorization:'Bearer '+cfg.supabaseAnonKey})},signal:AbortSignal.timeout(10000)});if(!res.ok)throw Error('Falha de leitura');const rows=await res.json();loading=false;articles=rows.filter(a=>a.id&&typeof a.title==='string'&&typeof a.summary==='string'&&typeof a.body==='string'&&sections.includes(a.category)&&a.category!=='Todas'&&Number.isFinite(Date.parse(a.published_at))).map(useCuratedSportsPhoto);$('notice').textContent=articles.length?'Artigos publicados pela redação. Consulte as fontes no final de cada leitura.':'A redação está a preparar as primeiras notícias. Volte em breve.';render();setSlides();fromHash();}catch{loading=false;articles=examples;render();setSlides();$('notice').textContent='Não foi possível carregar as notícias. Mostramos apenas a apresentação editorial. Tente novamente mais tarde.';fromHash();}finally{editorialLoading=false;if(refreshButton)refreshButton.disabled=false;const stamp=$('editorial-updated');if(stamp)stamp.textContent=(articles.some(a=>!a.demo)?'Edição consultada':'Edição indisponível')+' · '+new Date().toLocaleString('pt-PT',{dateStyle:'short',timeStyle:'short'});}}
 
 // Carousel uses the full published edition; it pauses during reading and keyboard interaction.
 let slides=[],slideIndex=0,slideTimer=null;
@@ -152,15 +179,34 @@ carousel.addEventListener('mouseenter',syncSlides);carousel.addEventListener('mo
 // Official TradingView widget: source handles updates, trading sessions and data delays.
 const marketConfig={colorTheme:'light',dateRange:'1D',locale:'pt',isTransparent:true,showFloatingTooltip:true,showSymbolLogo:true,showChart:true,width:'100%',height:520,plotLineColorGrowing:'#315acc',plotLineColorFalling:'#db4a36',gridLineColor:'rgba(20,34,59,0.06)',scaleFontColor:'#526078',belowLineFillColorGrowing:'rgba(49,90,204,0.12)',belowLineFillColorFalling:'rgba(219,74,54,0.12)',tabs:[{title:'Commodities',symbols:[{s:'TVC:UKOIL',d:'Petróleo Brent'},{s:'TVC:USOIL',d:'Petróleo WTI'},{s:'TVC:GOLD',d:'Ouro'},{s:'TVC:SILVER',d:'Prata'},{s:'CAPITALCOM:COPPER',d:'Cobre (CFD)'}]},{title:'Índices globais',symbols:[{s:'FOREXCOM:SPXUSD',d:'S&P 500 (CFD)'},{s:'FOREXCOM:NSXUSD',d:'Nasdaq 100 (CFD)'},{s:'INDEX:DEU40',d:'DAX · Alemanha'},{s:'FOREXCOM:UKXGBP',d:'FTSE 100 (CFD)'},{s:'INDEX:NKY',d:'Nikkei · Japão'}]},{title:'Câmbio',symbols:[{s:'FX:EURUSD',d:'Euro / Dólar'},{s:'FX:GBPUSD',d:'Libra / Dólar'},{s:'FX:USDJPY',d:'Dólar / Iene'},{s:'FX:USDCAD',d:'Dólar / Dólar canadiano'}]}]};
 const marketActivationButton=$('load-market-widget');
-if(marketActivationButton){marketActivationButton.addEventListener('click',()=>{
- marketActivationButton.disabled=true;marketActivationButton.textContent='A carregar os gráficos…';
- const marketScript=document.createElement('script');marketScript.src='https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js';marketScript.async=true;marketScript.textContent=JSON.stringify(marketConfig);
- marketScript.onerror=()=>{$('market-status').textContent='O painel não está disponível. Consulte os mercados na ligação TradingView.';marketActivationButton.disabled=false;marketActivationButton.textContent='Tentar carregar novamente ↗';};
- $('market-widget').append(marketScript);
- const frameObserver=new MutationObserver((_,observer)=>{const frame=$('market-widget').querySelector('iframe');if(frame){frame.title='Gráfico de commodities, índices globais e câmbio — TradingView';frame.addEventListener('load',()=>{$('market-status').textContent='Painel fornecido por TradingView. Se um símbolo estiver indisponível, escolha outro instrumento.';},{once:true});marketActivationButton.hidden=true;observer.disconnect();}});
- frameObserver.observe($('market-widget'),{childList:true,subtree:true});
-});}
-
+if(marketActivationButton){
+ let marketLoading=false;
+ function loadMarket(){
+  if(marketLoading)return;marketLoading=true;
+  marketActivationButton.hidden=true;
+  $('market-status').textContent='A carregar automaticamente as cotações da TradingView…';
+  const marketScript=document.createElement('script');
+  marketScript.src='https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js';
+  marketScript.async=true;marketScript.textContent=JSON.stringify(marketConfig);
+  marketScript.onerror=()=>{
+   marketLoading=false;
+   $('market-status').textContent='Não foi possível carregar os gráficos automaticamente. Consulte TradingView ou tente novamente.';
+   marketActivationButton.hidden=false;marketActivationButton.textContent='Tentar novamente ↻';
+  };
+  $('market-widget').append(marketScript);
+  const observer=new MutationObserver((_,obs)=>{
+   const frame=$('market-widget').querySelector('iframe');
+   if(frame){
+    frame.title='Gráfico de commodities, índices globais e câmbio — TradingView';
+    frame.addEventListener('load',()=>{$('market-status').textContent='Cotações fornecidas por TradingView; podem existir atrasos conforme o instrumento.';},{once:true});
+    obs.disconnect();
+   }
+  });
+  observer.observe($('market-widget'),{childList:true,subtree:true});
+ }
+ marketActivationButton.addEventListener('click',loadMarket);
+ loadMarket();
+}
 
 // Public campaigns are read from a sanitized, read-only table. Commercial notes
 // and negotiated prices are never returned to readers.
@@ -222,4 +268,45 @@ if(followShareButton){
 }
 
 setSlides();void trackView();load();
+$('editorial-refresh')?.addEventListener('click',()=>void load());
+setInterval(()=>{if(!document.hidden)void load();},15*60*1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void load();});
 void displayApprovedAds();
+
+/* Destaques económicos de cinco mercados de referência, rotação automática. */
+(()=>{
+ const root=document.getElementById('economy-news');if(!root)return;
+ const tabs=[...document.querySelectorAll('[data-economy]')],more=document.getElementById('economy-more'),status=document.getElementById('economy-status'),pause=document.getElementById('economy-pause');
+ const entries={AO:'Angola',PT:'Portugal',US:'Estados Unidos',BR:'Brasil',GB:'Reino Unido'};
+ const cache=new Map(),order=Object.keys(entries);let current='AO',requestId=0,rotating=true,rotation;
+ function googleSearch(code){const q='economia '+entries[code];return 'https://news.google.com/search?'+new URLSearchParams({q});}
+ function draw(items){root.replaceChildren();let count=0;
+  for(const item of items){if(count===5)break;if(!item.title||!item.link)continue;
+   let u;try{u=new URL(item.link);if(u.protocol!=='https:'||u.hostname!=='news.google.com')continue;}catch{continue;}
+   const a=document.createElement('a');a.className='economy-story';a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';
+   const title=document.createElement('strong');title.textContent=item.title.slice(0,220);
+   const meta=document.createElement('small');const date=Date.parse(item.pubDate);
+   meta.textContent=(item.author?item.author+' · ':'')+(Number.isFinite(date)?new Intl.DateTimeFormat('pt-PT',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(date):'Consultar fonte');
+   a.append(title,meta);root.append(a);count++;
+  }return count;
+ }
+ async function show(code){
+  if(!entries[code])return;current=code;const id=++requestId;
+  tabs.forEach(t=>t.setAttribute('aria-pressed',String(t.dataset.economy===code)));
+  more.href=googleSearch(code);
+  const old=cache.get(code);
+  if(old&&Date.now()-old.time<900000){draw(old.items);status.textContent='Jornais económicos · '+entries[code]+' · consulta periódica';return;}
+  root.textContent='A consultar os principais jornais económicos de '+entries[code]+'…';
+  try{const response=await fetch('/api/economy?'+new URLSearchParams({country:code}),{signal:AbortSignal.timeout(10000)});
+   if(!response.ok)throw Error('Fonte indisponível');const data=await response.json();
+   if(!Array.isArray(data.items))throw Error('Sem resultados');if(id!==requestId)return;
+   if(!draw(data.items))throw Error('Sem manchetes');cache.set(code,{items:data.items,time:Date.now()});
+   status.textContent='Manchetes de jornais económicos · '+entries[code]+' · atualização de 15 em 15 minutos';
+  }catch{if(id!==requestId)return;root.textContent='As manchetes deste país estão temporariamente indisponíveis. Consulte os jornais pela ligação abaixo.';status.textContent='Consulta externa indisponível.';}
+ }
+ function start(){clearInterval(rotation);if(rotating)rotation=setInterval(()=>{if(!document.hidden)void show(order[(order.indexOf(current)+1)%order.length]);},25000);}
+ tabs.forEach(t=>t.addEventListener('click',()=>{void show(t.dataset.economy);start();}));
+ pause.addEventListener('click',()=>{rotating=!rotating;pause.textContent=rotating?'Pausar rotação':'Retomar rotação';pause.setAttribute('aria-pressed',String(!rotating));start();});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)void show(current);});
+ void show(current);start();
+})();
