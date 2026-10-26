@@ -34,6 +34,14 @@ const repeatedStockSportPhoto=/photo-1771344164616-3582e4dc2f07|photo-1549210194
 // A photograph from a different match is explicitly marked as archive in its caption.
 // No training sessions, portraits or press presentations.
 const sportsSelectedTeamPhotos={ 
+ 'a708d825-c1d6-44c1-84b3-b7d258a9994c':{
+  image_url:'https://upload.wikimedia.org/wikipedia/commons/8/8d/Giannis_Antetokounmpo_Free_Throw_2026_Denver.jpg',
+  image_alt:'Giannis Antetokounmpo, dos Milwaukee Bucks, prepara um lance livre frente aos Denver Nuggets em janeiro de 2026',
+  image_credit:'MhcL947 / Wikimedia Commons · CC BY-SA 4.0 · Arquivo 2026',
+  image_source_url:'https://commons.wikimedia.org/wiki/File:Giannis_Antetokounmpo_Free_Throw_2026_Denver.jpg',
+  image_caption:'Giannis Antetokounmpo, dos Bucks, durante um encontro com os Nuggets em janeiro de 2026. Fotografia de arquivo, não representa a partida contra Philadelphia mencionada na notícia. MhcL947 / Wikimedia Commons, CC BY-SA 4.0.'
+ },
+
  '86d90ebf-8c70-44e4-9eb5-6fdd43d5e367':{
   image_url:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Kylian_Mbappe_at_Real_Madrid%27s_game_versus_Juventus_Turin_on_22_October_2025.jpeg',
   image_alt:'Kylian Mbappé ao serviço do Real Madrid num jogo diante da Juventus em outubro de 2025',
