@@ -190,5 +190,29 @@ async function displayApprovedAds(){
  }catch(error){console.warn('Publicidade indisponível. Os espaços promocionais mantêm-se disponíveis.');}
 }
 
+
+// Partilha nativa no telemóvel, com cópia da ligação nos restantes navegadores.
+const followShareButton=document.getElementById('follow-share-link');
+if(followShareButton){
+ followShareButton.addEventListener('click',async()=>{
+  const url='https://www.jingolokela.com/';
+  const status=document.getElementById('follow-share-status');
+  try{
+   if(typeof navigator.share==='function'){
+    await navigator.share({title:'Jingolokela Para Todos',text:'Informação sem fronteiras: Angola, diáspora e mundo.',url});
+    if(status)status.textContent='Obrigado por partilhares!';
+   }else if(navigator.clipboard&&typeof navigator.clipboard.writeText==='function'){
+    await navigator.clipboard.writeText(url);
+    if(status)status.textContent='Ligação copiada! Podes partilhá-la.';
+   }else{
+    window.prompt('Copia a ligação para partilhar o jornal:',url);
+    if(status)status.textContent='Ligação pronta para partilhar.';
+   }
+  }catch(error){
+   if(status)status.textContent=error&&error.name==='AbortError'?'Partilha cancelada.':'Não foi possível partilhar automaticamente. Copia www.jingolokela.com.';
+  }
+ });
+}
+
 setSlides();void trackView();load();
 void displayApprovedAds();
