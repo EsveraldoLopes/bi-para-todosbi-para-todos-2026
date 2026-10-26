@@ -223,3 +223,22 @@ if(followShareButton){
 
 setSlides();void trackView();load();
 void displayApprovedAds();
+
+/* Manchetes internacionais: títulos externos, fonte e data, sem conteúdo copiado. */
+(()=>{
+ const list=document.getElementById('economy-news');if(!list)return;
+ const options={AO:['economia Angola petróleo bancos','pt-PT','AO','AO:pt'],PT:['economia Portugal empresas','pt-PT','PT','PT:pt'],BR:['economia Brasil mercados','pt-BR','BR','BR:pt-419'],US:['US economy markets business','en-US','US','US:en'],WORLD:['global economy commodities','en-US','US','US:en']};
+ const tabs=[...document.querySelectorAll('[data-economy]')],more=document.getElementById('economy-more'),status=document.getElementById('economy-status');
+ const cache=new Map();let serial=0;
+ function urlFor(region,type){const p=options[region];return 'https://news.google.com/'+type+'?'+new URLSearchParams({q:p[0],hl:p[1],gl:p[2],ceid:p[3]});}
+ function render(items){list.replaceChildren();for(const item of items.slice(0,5)){if(!item.title||!item.link)continue;let u;try{u=new URL(item.link);if(u.protocol!=='https:'||u.hostname!=='news.google.com')continue;}catch{continue;}
+  const a=document.createElement('a');a.className='economy-story';a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';
+  const title=document.createElement('strong');title.textContent=String(item.title).slice(0,220);const meta=document.createElement('small');const time=Date.parse(item.pubDate);meta.textContent=(item.author?String(item.author).slice(0,50)+' · ':'')+(Number.isFinite(time)?new Intl.DateTimeFormat('pt-PT',{day:'2-digit',month:'short'}).format(time):'Fonte original');
+  a.append(title,meta);list.append(a);}return list.children.length;}
+ async function show(region){if(!options[region])return;const id=++serial;tabs.forEach(t=>t.setAttribute('aria-pressed',String(t.dataset.economy===region)));more.href=urlFor(region,'search');
+ list.textContent='A consultar notícias económicas…';const cached=cache.get(region);if(cached&&Date.now()-cached.at<900000){render(cached.items);status.textContent='Manchetes externas · '+region;return;}
+ try{const endpoint='https://api.rss2json.com/v1/api.json?'+new URLSearchParams({rss_url:urlFor(region,'rss/search')});const response=await fetch(endpoint,{signal:AbortSignal.timeout(10000)});if(!response.ok)throw Error('Feed');const payload=await response.json();if(payload.status!=='ok'||!Array.isArray(payload.items))throw Error('Feed');if(id!==serial)return;
+  if(!render(payload.items))throw Error('Sem artigos');cache.set(region,{at:Date.now(),items:payload.items});status.textContent='Fonte: Google Notícias e publicações originais · renovação após 15 minutos';
+ }catch{if(id!==serial)return;list.textContent='Manchetes indisponíveis. Use a ligação abaixo para consultar as notícias económicas.';status.textContent='Serviço de notícias temporariamente indisponível.';}}
+ tabs.forEach(t=>t.addEventListener('click',()=>show(t.dataset.economy)));show('AO');
+})();
