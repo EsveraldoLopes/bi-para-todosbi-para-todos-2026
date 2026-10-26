@@ -105,9 +105,12 @@ function useCuratedSportsPhoto(article){
  if(article.category!=='Desporto')return article;
  // Keep any original photo specifically commissioned or selected for this article.
  const generic=!!article.image_url&&repeatedStockSportPhoto.test(article.image_url);
- if(!generic)return article;
+ // Include an individually curated sports archive when the source has no photo,
+ // not just when a generic stock image needs replacing.
+ const missing=!article.image_url||!imageUrl(article.image_url);
+ if(!generic&&!missing)return article;
  const archive=sportsSpecificArchives[article.id]||sportsSelectedTeamPhotos[article.id];
- if(archive)return {...article,...archive};
+ if(archive&&imageUrl(archive.image_url))return {...article,...archive};
  // For all other sports results, prefer the actual two teams and correct score
  // to historically unrelated photos or generic stadium imagery.
  return {...article,image_url:null,image_credit:null,image_alt:null,image_source_url:null,image_caption:null};
