@@ -104,3 +104,26 @@
 @media(max-width:1100px){.masthead{flex-wrap:wrap}.masthead p{margin-right:auto}}
 @media(max-width:750px){.masthead .header-social-links{justify-content:flex-end;width:100%;order:5}.footer-social-links{justify-content:flex-start}}
 @media(max-width:500px){.masthead .header-social-links{justify-content:flex-start}}
+
+/* Convite institucional para seguir e partilhar o jornal */
+.follow-hub{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:30px;align-items:center;margin:32px 0 42px;padding:34px 38px;background:linear-gradient(135deg,#101e35 0%,#18375f 100%);color:#fff;border-radius:18px;box-shadow:0 18px 40px rgba(16,30,53,.10)}
+.follow-hub .eyebrow{color:#b8cdeb;margin:0 0 11px;font-size:10px;letter-spacing:.17em}
+.follow-hub-copy h2{font-size:clamp(27px,3vw,40px);letter-spacing:-1.25px;line-height:1.16;margin:0 0 15px}
+.follow-hub-copy h2 em{font-weight:400;font-style:normal;color:#d4e3fa}
+.follow-hub-copy>p:not(.eyebrow){font-size:14px;line-height:1.75;color:#e3ebf5;margin:0 0 19px;max-width:470px}
+.follow-hub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.follow-card{display:flex;flex-direction:column;align-items:flex-start;min-height:220px;padding:20px;background:#fff;color:#172d4f;border:1px solid rgba(255,255,255,.24);border-radius:14px;text-decoration:none;transition:transform .18s ease,box-shadow .18s ease}
+.follow-card:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(0,0,0,.16)}
+.follow-card .follow-icon{display:inline-flex;align-items:center;justify-content:center;height:43px;width:43px;border-radius:12px;background:#eaf0fa;color:#2056a3;margin-bottom:16px}
+.follow-card-instagram .follow-icon{background:#f9e8f4;color:#b33577}
+.follow-network{font-size:10px;letter-spacing:.14em;font-weight:700;color:#52657e}
+.follow-card strong{font-size:15px;line-height:1.35;overflow-wrap:anywhere;margin:6px 0 18px}
+.follow-card-action{font-size:12px;font-weight:700;color:#1a508c;margin-top:auto}
+.follow-hub-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.follow-share-action{display:inline-flex;align-items:center;gap:14px;justify-content:center;background:transparent;color:#fff;border:1px solid #a9bedb;border-radius:999px;padding:10px 18px;font-weight:700;font-size:13px;transition:background .18s ease}
+.follow-share-action:hover{background:#ffffff1c}
+.follow-share-status{font-size:12px;color:#dbe9fb;min-height:1em}
+@media(max-width:980px){.follow-hub{grid-template-columns:1fr;gap:24px}}
+@media(max-width:600px){.follow-hub{padding:26px 21px;margin:24px 0 32px;border-radius:14px}.follow-hub-grid{gap:9px}.follow-card{padding:15px;min-height:218px}.follow-card .follow-icon{margin-bottom:13px}.follow-card strong{font-size:13px}.follow-card-action{font-size:11px}}
+@media(max-width:370px){.follow-hub-grid{grid-template-columns:1fr}.follow-card{min-height:170px}}
+@media(prefers-reduced-motion:reduce){.follow-card,.follow-share-action{transition:none}.follow-card:hover{transform:none}}
