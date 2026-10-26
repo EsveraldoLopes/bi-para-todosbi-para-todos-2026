@@ -152,15 +152,34 @@ carousel.addEventListener('mouseenter',syncSlides);carousel.addEventListener('mo
 // Official TradingView widget: source handles updates, trading sessions and data delays.
 const marketConfig={colorTheme:'light',dateRange:'1D',locale:'pt',isTransparent:true,showFloatingTooltip:true,showSymbolLogo:true,showChart:true,width:'100%',height:520,plotLineColorGrowing:'#315acc',plotLineColorFalling:'#db4a36',gridLineColor:'rgba(20,34,59,0.06)',scaleFontColor:'#526078',belowLineFillColorGrowing:'rgba(49,90,204,0.12)',belowLineFillColorFalling:'rgba(219,74,54,0.12)',tabs:[{title:'Commodities',symbols:[{s:'TVC:UKOIL',d:'Petróleo Brent'},{s:'TVC:USOIL',d:'Petróleo WTI'},{s:'TVC:GOLD',d:'Ouro'},{s:'TVC:SILVER',d:'Prata'},{s:'CAPITALCOM:COPPER',d:'Cobre (CFD)'}]},{title:'Índices globais',symbols:[{s:'FOREXCOM:SPXUSD',d:'S&P 500 (CFD)'},{s:'FOREXCOM:NSXUSD',d:'Nasdaq 100 (CFD)'},{s:'INDEX:DEU40',d:'DAX · Alemanha'},{s:'FOREXCOM:UKXGBP',d:'FTSE 100 (CFD)'},{s:'INDEX:NKY',d:'Nikkei · Japão'}]},{title:'Câmbio',symbols:[{s:'FX:EURUSD',d:'Euro / Dólar'},{s:'FX:GBPUSD',d:'Libra / Dólar'},{s:'FX:USDJPY',d:'Dólar / Iene'},{s:'FX:USDCAD',d:'Dólar / Dólar canadiano'}]}]};
 const marketActivationButton=$('load-market-widget');
-if(marketActivationButton){marketActivationButton.addEventListener('click',()=>{
- marketActivationButton.disabled=true;marketActivationButton.textContent='A carregar os gráficos…';
- const marketScript=document.createElement('script');marketScript.src='https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js';marketScript.async=true;marketScript.textContent=JSON.stringify(marketConfig);
- marketScript.onerror=()=>{$('market-status').textContent='O painel não está disponível. Consulte os mercados na ligação TradingView.';marketActivationButton.disabled=false;marketActivationButton.textContent='Tentar carregar novamente ↗';};
- $('market-widget').append(marketScript);
- const frameObserver=new MutationObserver((_,observer)=>{const frame=$('market-widget').querySelector('iframe');if(frame){frame.title='Gráfico de commodities, índices globais e câmbio — TradingView';frame.addEventListener('load',()=>{$('market-status').textContent='Painel fornecido por TradingView. Se um símbolo estiver indisponível, escolha outro instrumento.';},{once:true});marketActivationButton.hidden=true;observer.disconnect();}});
- frameObserver.observe($('market-widget'),{childList:true,subtree:true});
-});}
-
+if(marketActivationButton){
+ let marketLoading=false;
+ function loadMarket(){
+  if(marketLoading)return;marketLoading=true;
+  marketActivationButton.hidden=true;
+  $('market-status').textContent='A carregar automaticamente as cotações da TradingView…';
+  const marketScript=document.createElement('script');
+  marketScript.src='https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js';
+  marketScript.async=true;marketScript.textContent=JSON.stringify(marketConfig);
+  marketScript.onerror=()=>{
+   marketLoading=false;
+   $('market-status').textContent='Não foi possível carregar os gráficos automaticamente. Consulte TradingView ou tente novamente.';
+   marketActivationButton.hidden=false;marketActivationButton.textContent='Tentar novamente ↻';
+  };
+  $('market-widget').append(marketScript);
+  const observer=new MutationObserver((_,obs)=>{
+   const frame=$('market-widget').querySelector('iframe');
+   if(frame){
+    frame.title='Gráfico de commodities, índices globais e câmbio — TradingView';
+    frame.addEventListener('load',()=>{$('market-status').textContent='Cotações fornecidas por TradingView; podem existir atrasos conforme o instrumento.';},{once:true});
+    obs.disconnect();
+   }
+  });
+  observer.observe($('market-widget'),{childList:true,subtree:true});
+ }
+ marketActivationButton.addEventListener('click',loadMarket);
+ loadMarket();
+}
 
 // Public campaigns are read from a sanitized, read-only table. Commercial notes
 // and negotiated prices are never returned to readers.
