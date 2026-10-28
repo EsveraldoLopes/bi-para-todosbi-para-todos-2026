@@ -267,9 +267,9 @@ if(followShareButton){
  });
 }
 
-setSlides();void trackView();load();
+setSlides();void trackView();load().then(()=>loadPopularArticles());
 $('editorial-refresh')?.addEventListener('click',()=>void load());
-setInterval(()=>{if(!document.hidden)void load();},15*60*1000);
+setInterval(()=>{if(!document.hidden)void load().then(()=>loadPopularArticles());},15*60*1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)void load();});
 void displayApprovedAds();
 
@@ -310,3 +310,20 @@ void displayApprovedAds();
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)void show(current);});
  void show(current);start();
 })();
+
+// Ranking editorial: usa exclusivamente contagens agregadas e artigos já publicados.
+async function loadPopularArticles(){
+ const root=document.getElementById("popular-list"),status=document.getElementById("popular-status");if(!root)return;
+ const cfg=window.PORTAL_CONFIG||{};if(!cfg.supabaseUrl||!cfg.supabaseAnonKey){root.replaceChildren();status.textContent="Ranking indisponível.";return;}
+ try{
+  const url=new URL("/rest/v1/rpc/get_popular_articles",cfg.supabaseUrl);
+  const response=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json",apikey:cfg.supabaseAnonKey,...(cfg.supabaseAnonKey.startsWith("sb_publishable_")?{}:{Authorization:"Bearer "+cfg.supabaseAnonKey})},body:JSON.stringify({p_days:7,p_limit:5}),signal:AbortSignal.timeout(7000)});
+  if(!response.ok)throw Error("Ranking indisponível");const counts=await response.json();
+  root.replaceChildren();let shown=0;
+  for(const entry of counts){const article=articles.find(a=>String(a.id)===String(entry.article_id)&&!a.demo);if(!article)continue;
+   const li=document.createElement("li"),number=document.createElement("span"),button=document.createElement("button"),title=document.createElement("strong"),meta=document.createElement("small");
+   number.className="popular-rank";number.textContent=String(++shown).padStart(2,"0");title.textContent=article.title;meta.textContent=article.category+" · "+Number(entry.view_count).toLocaleString("pt-PT")+" leituras";button.type="button";button.append(title,meta);button.addEventListener("click",()=>openArticle(article));li.append(number,button);root.append(li);
+  }
+  status.textContent=shown?"Ranking baseado em leituras registadas nos últimos 7 dias.":"Ainda não existem leituras suficientes para apresentar um ranking.";
+ }catch{root.replaceChildren();status.textContent="Não foi possível consultar as notícias mais lidas neste momento.";}
+}
