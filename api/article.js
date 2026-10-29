@@ -80,7 +80,7 @@ function editorialPhoto(article){
   const archived=sportsSpecificArchives[a.id]||sportsSelectedTeamPhotos[a.id];
   a=archived?{...a,...archived}:{...a,image_url:null};
  }
- try{const u=new URL(a.image_url);if(u.protocol==='https:'&&['images.unsplash.com','images.pexels.com','upload.wikimedia.org','thumb.wikimedia.org','commons.wikimedia.org'].includes(u.hostname))return {url:u.href,alt:a.image_alt||a.title,credit:a.image_credit||'',caption:a.image_caption||'Fotografia editorial de arquivo'};}catch{}
+ try{const u=new URL(a.image_url);if(u.protocol==='https:'&&['images.unsplash.com','images.pexels.com','upload.wikimedia.org','thumb.wikimedia.org','commons.wikimedia.org'].includes(u.hostname)||u.href==="https://scm.gov.ao/media/uploads/large_Whats_App_Image_2026_08_28_at_11_40_06_2_7d550f238d.jpeg")return {url:u.href,alt:a.image_alt||a.title,credit:a.image_credit||'',caption:a.image_caption||'Fotografia editorial de arquivo'};}catch{}
  return null;
 }
 function jsonld(a,canonical,image){

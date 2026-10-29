@@ -18,7 +18,7 @@
     if(conditions.length)url.searchParams.set('and','('+conditions.join(',')+')');
     return url;
   }
-  function safeImage(value){try{const u=new URL(value);return u.protocol==='https:'&&u.hostname==='images.unsplash.com'?u.href:null;}catch{return null;}}
+  function safeImage(value){try{const u=new URL(value);return u.protocol==='https:'&&(u.hostname==='images.unsplash.com'||u.href==="https://scm.gov.ao/media/uploads/large_Whats_App_Image_2026_08_28_at_11_40_06_2_7d550f238d.jpeg")?u.href:null;}catch{return null;}}
   function card(article){
     const el=document.createElement('article');el.className='archive-card';
     const href='/noticia/'+encodeURIComponent(article.id),visual=document.createElement('a');visual.href=href;visual.tabIndex=-1;visual.setAttribute('aria-hidden','true');
