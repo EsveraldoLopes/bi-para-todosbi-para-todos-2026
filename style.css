@@ -152,3 +152,28 @@
 
 /* Acesso permanente às edições anteriores */
 .archive-entry{margin:24px 0 0;padding:18px 22px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--muted);font-size:14px}.archive-entry a{display:inline-block;margin-left:6px;color:var(--blue);font-weight:700;text-underline-offset:4px}
+
+/* Destaques com fotografia completa: o texto só muda quando a imagem está pronta. */
+.news-carousel{min-height:490px;box-shadow:0 22px 48px #15274724;touch-action:pan-y;border:1px solid #ffffff20}
+.carousel-backdrop{background:#101e35;transition:opacity .25s}
+.carousel-backdrop:after{background:linear-gradient(180deg,rgba(7,15,29,.08) 0%,rgba(7,15,29,.08) 25%,rgba(7,15,29,.72) 55%,rgba(7,15,29,.98) 100%)}
+.carousel-backdrop img{object-position:center center;animation:carousel-photo-in .45s ease-out}
+.carousel-content{display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;padding:105px 30px 22px;position:relative}
+.carousel-content .eyebrow{display:inline-flex;gap:5px;align-items:center;background:#101e35b8;border:1px solid #ffffff30;border-radius:99px;padding:7px 11px;color:#fff;font-size:9px;letter-spacing:.12em;margin:0 0 14px}
+.carousel-content h2{font-size:clamp(25px,2.6vw,35px);line-height:1.13;letter-spacing:-.8px;margin:0 0 14px;text-wrap:balance;text-shadow:0 2px 12px #0005}
+.carousel-content h2 button{line-height:inherit}.carousel-content h2 button:hover{text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:1px}
+.carousel-content #slide-summary{font-size:14px;line-height:1.55;color:#edf2fc;margin:0 0 13px;max-width:48ch}
+.carousel-content .slide-meta{font-size:10px!important;line-height:1.5!important;color:#c8d2e3!important;margin:0 0 16px;letter-spacing:.02em;max-width:100%;overflow-wrap:anywhere}
+.carousel-read{border:1px solid #ffffff85;border-radius:8px;padding:10px 16px;margin:0;font-weight:700;font-size:12px;background:#fff;color:#14223b;transition:background .2s}
+.carousel-read:hover{background:#e1e9ff}.carousel-read:disabled{opacity:.5}
+.slide-photo-label{top:17px;left:20px;right:auto;background:#101e35c9;border:1px solid #ffffff35;border-radius:5px;padding:5px 8px;font-size:8px;letter-spacing:.07em;max-width:calc(100% - 40px)}
+.carousel-controls{background:#101e35c9;padding:13px 22px;font-size:11px;min-height:74px}.carousel-controls>div{gap:7px}.carousel-controls button{min-width:44px;min-height:44px;border-radius:9px;font-size:13px}.carousel-controls #slide-toggle{min-width:88px}
+.carousel-progress{height:3px;background:#ffffff20;overflow:hidden}.carousel-progress span{display:block;width:100%;height:100%;background:#ffb195;transform:scaleX(0);transform-origin:left}
+.news-carousel[data-auto-playing=true] .carousel-progress span{animation:carousel-reading-progress 8s linear forwards}
+.news-carousel[aria-busy=true][data-photo-ready=true] .carousel-progress span{animation:none}
+@keyframes carousel-reading-progress{to{transform:scaleX(1)}}@keyframes carousel-photo-in{from{opacity:.65}to{opacity:1}}
+@media(max-width:1000px){.news-carousel{min-height:470px}.carousel-content{padding:100px 24px 22px}.carousel-content h2{font-size:29px}}
+@media(max-width:750px){.news-carousel{min-height:450px}.carousel-content h2{font-size:32px}.carousel-content #slide-summary{max-width:55ch}.carousel-backdrop:after{background:linear-gradient(180deg,#07101d05 0%,#07101d10 20%,#07101dba 54%,#07101dfa 100%)}}
+@media(max-width:500px){.news-carousel{min-height:470px}.carousel-content{padding:105px 22px 20px}.carousel-content h2{font-size:27px}.carousel-content #slide-summary{font-size:13px}.carousel-controls{padding:12px 18px}.slide-photo-label{left:16px;top:15px}}
+@media(prefers-reduced-motion:reduce){.carousel-backdrop,.carousel-read{transition:none}.carousel-backdrop img{animation:none}.carousel-progress span{animation:none!important}}
+
