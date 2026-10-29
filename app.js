@@ -133,10 +133,10 @@ function useCuratedSportsPhoto(article){
  const missing=!article.image_url||!imageUrl(article.image_url);
  if(!generic&&!missing)return article;
  const archive=sportsSpecificArchives[article.id]||sportsSelectedTeamPhotos[article.id];
- if(archive&&imageUrl(archive.image_url))return {...article,...archive};
- // For all other sports results, prefer the actual two teams and correct score
- // to historically unrelated photos or generic stadium imagery.
- return {...article,image_url:null,image_credit:null,image_alt:null,image_source_url:null,image_caption:null};
+ if(archive&&imageUrl(archive.image_url))return {...article,...archive,_fallbackPhoto:article};
+ // Retain the editor-selected, credited illustration when no specific archive exists.
+ // Its caption distinguishes an illustrative photograph from the reported match.
+ return article;
 }
 function imageUrl(value){const url=safeUrl(value);if(!url)return null;const u=new URL(url);const trusted=['images.unsplash.com','images.pexels.com','upload.wikimedia.org','thumb.wikimedia.org','commons.wikimedia.org'];if(trusted.includes(u.hostname))return u;try{const project=new URL(window.PORTAL_CONFIG?.supabaseUrl);if(u.origin===project.origin&&u.pathname.startsWith('/storage/v1/object/public/'))return u;}catch{}return null;}
 function articleImage(article,eager=false){const url=imageUrl(article.image_url);if(!url)return null;const img=document.createElement('img');img.src=url.href;img.alt=article.image_alt||'Imagem relacionada com a notícia';img.loading=eager?'eager':'lazy';img.decoding='async';img.width=1200;img.height=800;img.referrerPolicy='no-referrer';if(eager)img.fetchPriority='high';return img;}
@@ -164,12 +164,63 @@ let editorialLoading=false;
 async function load(){if(editorialLoading)return;editorialLoading=true;const refreshButton=$('editorial-refresh');if(refreshButton)refreshButton.disabled=true;const cfg=window.PORTAL_CONFIG||{};if(!cfg.supabaseUrl||!cfg.supabaseAnonKey){$('notice').textContent='Os artigos abaixo apresentam a linha editorial. Não são notícias de atualidade.';setSlides();fromHash();editorialLoading=false;if(refreshButton)refreshButton.disabled=false;return;}try{const base=safeUrl(cfg.supabaseUrl);if(!base)throw Error('URL inválida');const url=new URL('/rest/v1/articles',base);url.search=new URLSearchParams({select:'id,title,summary,body,category,author,source_url,published_at,image_url,image_alt,image_credit,image_source_url,image_caption',published:'eq.true',published_at:'lte.'+new Date().toISOString(),order:'published_at.desc',limit:'60'});const res=await fetch(url,{headers:{apikey:cfg.supabaseAnonKey,...(cfg.supabaseAnonKey.startsWith('sb_publishable_')?{}:{Authorization:'Bearer '+cfg.supabaseAnonKey})},signal:AbortSignal.timeout(10000)});if(!res.ok)throw Error('Falha de leitura');const rows=await res.json();loading=false;articles=rows.filter(a=>a.id&&typeof a.title==='string'&&typeof a.summary==='string'&&typeof a.body==='string'&&sections.includes(a.category)&&a.category!=='Todas'&&Number.isFinite(Date.parse(a.published_at))).map(useCuratedSportsPhoto);$('notice').textContent=articles.length?'Artigos publicados pela redação. Consulte as fontes no final de cada leitura.':'A redação está a preparar as primeiras notícias. Volte em breve.';render();setSlides();fromHash();}catch{loading=false;articles=examples;render();setSlides();$('notice').textContent='Não foi possível carregar as notícias. Mostramos apenas a apresentação editorial. Tente novamente mais tarde.';fromHash();}finally{editorialLoading=false;if(refreshButton)refreshButton.disabled=false;const stamp=$('editorial-updated');if(stamp)stamp.textContent=(articles.some(a=>!a.demo)?'Edição consultada':'Edição indisponível')+' · '+new Date().toLocaleString('pt-PT',{dateStyle:'short',timeStyle:'short'});}}
 
 // Carousel uses the full published edition; it pauses during reading and keyboard interaction.
-let slides=[],slideIndex=0,slideTimer=null;
+let slides=[],slideIndex=0,slideTimer=null,slideLoading=false,slideRequest=0;
 let slidePaused=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const carousel=document.querySelector('.news-carousel');
-function paintSlide(){const a=slides[slideIndex];if(!a)return;$('slide-category').textContent=a.category;$('slide-title').textContent=a.title;$('slide-summary').textContent=a.summary;$('slide-counter').textContent=String(slideIndex+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');$('slide-open').disabled=false;$('slide-open').onclick=$('slide-title').onclick=()=>openArticle(a);const art=$('slide-art');art.replaceChildren();art.dataset.editorialPhoto=a.image_url&&a.image_credit&&a.image_source_url?'true':'false';const photo=articleImage(a,true);if(photo){photo.alt='';photo.addEventListener('error',()=>{photo.remove();art.dataset.editorialPhoto='false';document.dispatchEvent(new Event('sports-art-fallback'));},{once:true});art.append(photo);const label=document.createElement('span');label.className='slide-photo-label';label.textContent=a.image_caption?.toLowerCase().includes('arquivo')?'FOTOGRAFIA DE ARQUIVO':a.image_credit?'FOTOGRAFIA · '+a.image_credit:'IMAGEM EDITORIAL';art.append(label);}art.dataset.category=a.category;}
-function syncSlides(){clearInterval(slideTimer);$('slide-toggle').textContent=slidePaused?'Reproduzir':'Pausar';$('slide-toggle').setAttribute('aria-label',slidePaused?'Reproduzir carrossel':'Pausar carrossel');$('slide-counter').setAttribute('aria-live',slidePaused?'polite':'off');if(!slidePaused&&slides.length>1&&!document.hidden&&!reader.open&&!carousel.matches(':hover')&&!carousel.contains(document.activeElement))slideTimer=setInterval(()=>{slideIndex=(slideIndex+1)%slides.length;paintSlide();},8000);}
-function setSlides(){const edition=articles.filter(a=>!a.demo&&(selected==='Todas'||a.category===selected));const remaining=edition.filter(a=>!isLeadArticle(a));slides=selected==='Todas'&&remaining.length?remaining:edition;const hasSlides=slides.length>0;['slide-prev','slide-next','slide-toggle'].forEach(id=>{$(id).disabled=!hasSlides;});if(!hasSlides){$('slide-title').textContent=loading?'A carregar os destaques…':'Em breve · '+(selected==='Todas'?'Novos destaques':selected);$('slide-title').onclick=null;$('slide-title').disabled=true;$('slide-summary').textContent='Estamos a preparar notícias para esta secção. Explore as restantes secções do portal.';$('slide-open').disabled=true;$('slide-counter').textContent='0 / 0';$('slide-category').textContent=selected==='Todas'?'A nossa edição':selected;$('slide-art').replaceChildren();clearInterval(slideTimer);return;}$('slide-title').disabled=false;slideIndex=0;paintSlide();syncSlides();}
+const failedSlides=new Set();
+const hasSlidePhoto=a=>Boolean(imageUrl(a.image_url)&&a.image_credit&&safeUrl(a.image_source_url));
+function carouselPhotoUrl(a){const url=imageUrl(a.image_url);if(url?.hostname==='images.unsplash.com'){url.searchParams.set('w','1400');url.searchParams.set('q','85');url.searchParams.set('auto','format');}return url?.href;}
+function loadSlidePhoto(a){return new Promise((resolve,reject)=>{
+ const src=carouselPhotoUrl(a);if(!src){reject(new Error('Imagem indisponível'));return;}
+ const photo=new Image();photo.alt='';photo.width=1400;photo.height=1000;photo.decoding='async';photo.referrerPolicy='no-referrer';
+ const timeout=setTimeout(()=>{photo.onload=photo.onerror=null;reject(new Error('Tempo de carregamento excedido'));},12000);
+ photo.onload=()=>{clearTimeout(timeout);photo.onload=photo.onerror=null;resolve(photo);};
+ photo.onerror=()=>{clearTimeout(timeout);photo.onload=photo.onerror=null;reject(new Error('Falha de imagem'));};photo.src=src;
+});}
+function emptySlides(){
+ slideRequest++;slideLoading=false;clearInterval(slideTimer);carousel.removeAttribute('aria-busy');carousel.dataset.autoPlaying='false';carousel.dataset.photoReady='false';
+ $('slide-title').textContent=loading?'A preparar os destaques…':'Mais notícias na nossa edição';$('slide-title').disabled=true;$('slide-title').onclick=null;
+ $('slide-summary').textContent=loading?'A carregar as notícias e as respetivas fotografias.':'Explore as notícias abaixo ou consulte o arquivo completo.';$('slide-category').textContent=selected==='Todas'?'A nossa edição':selected;
+ $('slide-meta').textContent='';$('slide-counter').textContent='0 / 0';$('slide-open').disabled=true;$('slide-open').onclick=null;$('slide-art').replaceChildren();$('slide-art').dataset.editorialPhoto='true';
+ ['slide-prev','slide-next','slide-toggle'].forEach(id=>{$(id).disabled=true;});
+}
+async function paintSlide(){
+ const a=slides[slideIndex];if(!a){emptySlides();return;}
+ const request=++slideRequest;slideLoading=true;clearInterval(slideTimer);carousel.dataset.autoPlaying='false';carousel.setAttribute('aria-busy','true');
+ let shown=a,photo;
+ try{try{photo=await loadSlidePhoto(a);}catch(error){if(!hasSlidePhoto(a._fallbackPhoto||{}))throw error;shown={...a,...a._fallbackPhoto};photo=await loadSlidePhoto(shown);}}
+ catch(error){if(request!==slideRequest)return;failedSlides.add(a.id);slides=slides.filter(item=>item.id!==a.id);slideIndex=slideIndex%Math.max(slides.length,1);slideLoading=false;if(slides.length)void paintSlide();else emptySlides();return;}
+ if(request!==slideRequest)return;
+ const art=$('slide-art');art.dataset.editorialPhoto='true';art.classList.remove('sports-teams-art');delete art.dataset.sportsMatch;art.replaceChildren(photo);art.dataset.category=shown.category;
+ const label=document.createElement('span');label.className='slide-photo-label';label.textContent='IMAGEM DE ARQUIVO / ILUSTRATIVA';art.append(label);
+ $('slide-category').textContent=shown.category;$('slide-title').textContent=shown.title;$('slide-summary').textContent=shown.summary;
+ $('slide-meta').textContent=new Date(shown.published_at).toLocaleDateString('pt-PT',{day:'numeric',month:'long',timeZone:'Europe/Lisbon'})+' · '+shown.image_credit;
+ $('slide-counter').textContent=String(slideIndex+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
+ $('slide-title').disabled=false;$('slide-open').disabled=false;$('slide-open').onclick=$('slide-title').onclick=()=>openArticle(shown);
+ ['slide-prev','slide-next','slide-toggle'].forEach(id=>{$(id).disabled=slides.length<2;});
+ slideLoading=false;carousel.removeAttribute('aria-busy');carousel.dataset.photoReady='true';syncSlides();
+ const next=slides[(slideIndex+1)%slides.length];if(next&&next.id!==a.id){const preload=new Image();preload.src=carouselPhotoUrl(next);}
+}
+function syncSlides(){
+ clearInterval(slideTimer);$('slide-toggle').textContent=slidePaused?'Reproduzir':'Pausar';$('slide-toggle').setAttribute('aria-label',slidePaused?'Reproduzir carrossel':'Pausar carrossel');$('slide-counter').setAttribute('aria-live',slidePaused?'polite':'off');
+ const play=!slidePaused&&!slideLoading&&slides.length>1&&!document.hidden&&!reader.open&&!carousel.matches(':hover')&&!carousel.contains(document.activeElement);
+ carousel.dataset.autoPlaying=String(play);if(play)slideTimer=setInterval(()=>moveSlide(1),8000);
+}
+function moveSlide(step){if(!slides.length)return;slideIndex=(slideIndex+step+slides.length)%slides.length;void paintSlide();}
+function setSlides(){
+ slideRequest++;failedSlides.clear();const edition=articles.filter(a=>!a.demo&&(selected==='Todas'||a.category===selected));
+ const remaining=edition.filter(a=>!isLeadArticle(a));slides=(selected==='Todas'&&remaining.length?remaining:edition).filter(hasSlidePhoto);
+ if(!slides.length){emptySlides();return;}slideIndex=0;void paintSlide();
+}
+// Keep title, photograph, credit and article link together, including during rapid navigation.
+emptySlides();
+let swipeStart=null;
+carousel.addEventListener('pointerdown',event=>{swipeStart=event.pointerType==='touch'&&!event.target.closest('button,a')?{x:event.clientX,y:event.clientY}:null;});
+carousel.addEventListener('pointerup',event=>{if(!swipeStart)return;const dx=event.clientX-swipeStart.x,dy=event.clientY-swipeStart.y;swipeStart=null;if(Math.abs(dx)>60&&Math.abs(dy)<40)moveSlide(dx<0?1:-1);});
+carousel.addEventListener('pointercancel',()=>{swipeStart=null;});
+carousel.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();moveSlide(event.key==='ArrowLeft'?-1:1);}});
+window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',event=>{if(event.matches)slidePaused=true;syncSlides();});
+
 
 $('slide-prev').onclick=()=>{if(!slides.length)return;slideIndex=(slideIndex-1+slides.length)%slides.length;paintSlide();syncSlides();};
 $('slide-next').onclick=()=>{if(!slides.length)return;slideIndex=(slideIndex+1)%slides.length;paintSlide();syncSlides();};
@@ -327,3 +378,4 @@ async function loadPopularArticles(){
   status.textContent=shown?"Ranking baseado em leituras registadas nos últimos 7 dias.":"Ainda não existem leituras suficientes para apresentar um ranking.";
  }catch{root.replaceChildren();status.textContent="Não foi possível consultar as notícias mais lidas neste momento.";}
 }
+
