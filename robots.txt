@@ -5,3 +5,4 @@ Disallow: /admin.html
 Disallow: /login
 
 Sitemap: https://www.jingolokela.com/sitemap.xml
+Sitemap: https://www.jingolokela.com/noticias-sitemap.xml
