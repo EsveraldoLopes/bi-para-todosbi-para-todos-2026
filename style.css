@@ -148,3 +148,7 @@
 
 /* A Voz do Leitor: interface preparada, sem recolha de votos até existir backend seguro */
 .reader-voice{margin:36px 0;padding:32px;border:1px solid #dce2ea;border-radius:16px;background:#f7f9fc}.reader-voice>p{line-height:1.6}.reader-voice #reader-poll{margin-top:18px;padding:20px;background:white;border:1px solid #e4e9f1;border-radius:12px}.reader-poll-note{font-size:.8rem;color:#64748b}.reader-voice .section-heading{margin-bottom:12px}@media(max-width:600px){.reader-voice{padding:20px}}
+
+
+/* Acesso permanente às edições anteriores */
+.archive-entry{margin:24px 0 0;padding:18px 22px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--muted);font-size:14px}.archive-entry a{display:inline-block;margin-left:6px;color:var(--blue);font-weight:700;text-underline-offset:4px}
