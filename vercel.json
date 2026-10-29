@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/noticias-sitemap.xml",
+      "destination": "/api/discovery?format=news"
+    },
+    {
+      "source": "/feed.xml",
+      "destination": "/api/discovery?format=rss"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/api/sitemap"
     },
