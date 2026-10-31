@@ -83,7 +83,7 @@ $('audience-reload').onclick=loadAudience;
 async function load(){
  const {data,error}=await db.from('articles').select('*').order('created_at',{ascending:false}).limit(1000);
  if(error){notify('Não foi possível listar artigos: '+error.message);return;}
- rows=data||[];renderStats();renderList();await loadAudience();await adLoad();
+ rows=data||[];renderStats();renderList();await loadAudience();await loadCommunity();await adLoad();
 }
 for(const id of ['search','status-filter','category-filter'])$(id).addEventListener('input',renderList);
 
@@ -166,3 +166,22 @@ const query=currentId?db.from('articles').update(payload).eq('id',currentId):db.
 const {error}=await query;if(error){notify('Falha ao guardar: '+error.message);return;}clearForm();await load();notify('Artigo guardado com sucesso.');
 }catch(err){notify('Erro ao guardar: '+err.message);}finally{btn.disabled=false;}};
 clearForm();await refresh();
+
+async function loadCommunity(){
+ const status=$('community-status'),traffic=$('community-traffic'),poll=$('community-poll');
+ status.textContent='A consultar os dados…';
+ const {data,error}=await db.rpc('jpt_community_dashboard');
+ traffic.replaceChildren();poll.replaceChildren();
+ if(error){status.textContent='Não foi possível carregar redes e participação. Tente atualizar.';return;}
+ const labels={facebook:'Facebook',instagram:'Instagram',whatsapp:'WhatsApp',telegram:'Telegram',google:'Google',other:'Outra origem',direct:'Direta ou desconhecida'};
+ const records=data.traffic||[];status.textContent=records.length?'Dados agregados dos últimos 30 dias (UTC).':'Ainda não existem entradas ou cliques registados. As contagens começam com esta atualização.';
+ const table=document.createElement('table');table.className='community-table';const caption=document.createElement('caption');caption.textContent='Origem e ações registadas';table.append(caption);
+ const head=document.createElement('thead'),tr=document.createElement('tr');for(const name of ['Canal','Entradas','Cliques de partilha','Cliques nas redes']){const th=document.createElement('th');th.scope='col';th.textContent=name;tr.append(th);}head.append(tr);table.append(head);
+ const body=document.createElement('tbody');for(const [source,label] of Object.entries(labels)){
+  const row=document.createElement('tr'),th=document.createElement('th');th.scope='row';th.textContent=label;row.append(th);
+  for(const kind of ['landing','share','follow']){const td=document.createElement('td');td.textContent=records.filter(r=>r.source===source&&r.event===kind).reduce((sum,r)=>sum+Number(r.total),0).toLocaleString('pt-PT');row.append(td);}body.append(row);
+ }table.append(body);traffic.append(table);
+ if(!data.poll){poll.textContent='Não há sondagem aberta.';return;}
+ const question=document.createElement('strong');question.textContent=data.poll.question;poll.append(question);const total=document.createElement('p');total.textContent=data.poll.total+' respostas registadas · até '+new Date(data.poll.ends_at).toLocaleDateString('pt-PT');poll.append(total);const list=document.createElement('ul');for(const option of data.poll.options){const li=document.createElement('li');li.textContent=option.label+': '+option.votes;list.append(li);}poll.append(list);
+}
+$('community-reload').onclick=loadCommunity;
