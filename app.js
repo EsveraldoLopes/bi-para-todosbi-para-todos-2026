@@ -183,7 +183,7 @@ const carousel=document.querySelector('.news-carousel');
 const failedSlides=new Set();
 const hasSlidePhoto=a=>Boolean(imageUrl(a.image_url)&&a.image_credit&&safeUrl(a.image_source_url));
 // Keep approved editorial cards whole; brand overlays never alter the photograph.
-const isBrandedCard=a=>/^https:\/\/www\.jingolokela\.com\/media\/(riquinho|mulenvos)-jingolokela-20261031\.jpg$/.test(a.image_url||'');
+const isBrandedCard=a=>/^https:\/\/www\.jingolokela\.com\/media\/(riquinho|mulenvos|sporting)-jingolokela-20261031\.jpg$/.test(a.image_url||'');
 function slidePhotoLabel(a){
  const caption=a.image_caption||'';
  if(/adaptad[ao].*IA|composição.*IA/i.test(caption))return 'COMPOSIÇÃO ILUSTRATIVA · IA';
