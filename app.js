@@ -174,6 +174,15 @@ let slidePaused=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const carousel=document.querySelector('.news-carousel');
 const failedSlides=new Set();
 const hasSlidePhoto=a=>Boolean(imageUrl(a.image_url)&&a.image_credit&&safeUrl(a.image_source_url));
+// Keep approved editorial cards whole; brand overlays never alter the photograph.
+const isBrandedCard=a=>/^https:\/\/www\.jingolokela\.com\/media\/(riquinho|mulenvos)-jingolokela-20261031\.jpg$/.test(a.image_url||'');
+function slidePhotoLabel(a){
+ const caption=a.image_caption||'';
+ if(/adaptad[ao].*IA|composição.*IA/i.test(caption))return 'COMPOSIÇÃO ILUSTRATIVA · IA';
+ if(/ilustrativ/i.test(caption))return 'IMAGEM ILUSTRATIVA';
+ if(/arquivo/i.test(caption))return 'IMAGEM DE ARQUIVO';
+ return 'FOTOGRAFIA · '+a.image_credit;
+}
 function carouselPhotoUrl(a){const url=imageUrl(a.image_url);if(url?.hostname==='images.unsplash.com'){url.searchParams.set('w','1400');url.searchParams.set('q','85');url.searchParams.set('auto','format');}return url?.href;}
 function loadSlidePhoto(a){return new Promise((resolve,reject)=>{
  const src=carouselPhotoUrl(a);if(!src){reject(new Error('Imagem indisponível'));return;}
@@ -197,7 +206,9 @@ async function paintSlide(){
  catch(error){if(request!==slideRequest)return;failedSlides.add(a.id);slides=slides.filter(item=>item.id!==a.id);slideIndex=slideIndex%Math.max(slides.length,1);slideLoading=false;if(slides.length)void paintSlide();else emptySlides();return;}
  if(request!==slideRequest)return;
  const art=$('slide-art');art.dataset.editorialPhoto='true';art.classList.remove('sports-teams-art');delete art.dataset.sportsMatch;art.replaceChildren(photo);art.dataset.category=shown.category;
- const label=document.createElement('span');label.className='slide-photo-label';label.textContent='IMAGEM DE ARQUIVO / ILUSTRATIVA';art.append(label);
+ carousel.dataset.imageLayout=isBrandedCard(shown)?'card':'photo';
+ const label=document.createElement('span');label.className='slide-photo-label';label.textContent=slidePhotoLabel(shown);art.append(label);
+ if(!isBrandedCard(shown)){const brand=document.createElement('span');brand.className='slide-brand';brand.textContent='jingolokela';const sub=document.createElement('small');sub.textContent='para todos.';brand.append(sub);art.append(brand);}
  $('slide-category').textContent=shown.category;$('slide-title').textContent=shown.title;$('slide-summary').textContent=shown.summary;
  $('slide-meta').textContent=new Date(shown.published_at).toLocaleDateString('pt-PT',{day:'numeric',month:'long',timeZone:'Europe/Lisbon'})+' · '+shown.image_credit;
  $('slide-counter').textContent=String(slideIndex+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
@@ -212,6 +223,7 @@ function syncSlides(){
  carousel.dataset.autoPlaying=String(play);if(play)slideTimer=setInterval(()=>moveSlide(1),8000);
 }
 function moveSlide(step){if(!slides.length)return;slideIndex=(slideIndex+step+slides.length)%slides.length;void paintSlide();}
+function navigateSlide(step){slidePaused=true;moveSlide(step);syncSlides();}
 function setSlides(){
  slideRequest++;failedSlides.clear();const edition=articles.filter(a=>!a.demo&&(selected==='Todas'||a.category===selected));
  const remaining=edition.filter(a=>!isLeadArticle(a));slides=(selected==='Todas'&&remaining.length?remaining:edition).filter(hasSlidePhoto);
@@ -221,14 +233,14 @@ function setSlides(){
 emptySlides();
 let swipeStart=null;
 carousel.addEventListener('pointerdown',event=>{swipeStart=event.pointerType==='touch'&&!event.target.closest('button,a')?{x:event.clientX,y:event.clientY}:null;});
-carousel.addEventListener('pointerup',event=>{if(!swipeStart)return;const dx=event.clientX-swipeStart.x,dy=event.clientY-swipeStart.y;swipeStart=null;if(Math.abs(dx)>60&&Math.abs(dy)<40)moveSlide(dx<0?1:-1);});
+carousel.addEventListener('pointerup',event=>{if(!swipeStart)return;const dx=event.clientX-swipeStart.x,dy=event.clientY-swipeStart.y;swipeStart=null;if(Math.abs(dx)>60&&Math.abs(dy)<40)navigateSlide(dx<0?1:-1);});
 carousel.addEventListener('pointercancel',()=>{swipeStart=null;});
-carousel.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();moveSlide(event.key==='ArrowLeft'?-1:1);}});
+carousel.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();navigateSlide(event.key==='ArrowLeft'?-1:1);}});
 window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',event=>{if(event.matches)slidePaused=true;syncSlides();});
 
 
-$('slide-prev').onclick=()=>{if(!slides.length)return;slideIndex=(slideIndex-1+slides.length)%slides.length;paintSlide();syncSlides();};
-$('slide-next').onclick=()=>{if(!slides.length)return;slideIndex=(slideIndex+1)%slides.length;paintSlide();syncSlides();};
+$('slide-prev').onclick=()=>navigateSlide(-1);
+$('slide-next').onclick=()=>navigateSlide(1);
 $('slide-toggle').onclick=()=>{slidePaused=!slidePaused;syncSlides();};
 carousel.addEventListener('mouseenter',syncSlides);carousel.addEventListener('mouseleave',syncSlides);carousel.addEventListener('focusin',syncSlides);carousel.addEventListener('focusout',()=>queueMicrotask(syncSlides));document.addEventListener('visibilitychange',syncSlides);reader.addEventListener('close',syncSlides);reader.addEventListener('toggle',syncSlides);
 
@@ -383,4 +395,5 @@ async function loadPopularArticles(){
   status.textContent=shown?"Ranking baseado em leituras registadas nos últimos 7 dias.":"Ainda não existem leituras suficientes para apresentar um ranking.";
  }catch{root.replaceChildren();status.textContent="Não foi possível consultar as notícias mais lidas neste momento.";}
 }
+
 
