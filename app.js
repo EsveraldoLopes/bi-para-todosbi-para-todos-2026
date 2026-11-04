@@ -6,9 +6,6 @@ const hasConfig=Boolean(window.PORTAL_CONFIG?.supabaseUrl&&window.PORTAL_CONFIG?
 let articles=hasConfig?[]:examples,selected=sections.find(s=>s===new URLSearchParams(location.search).get('seccao'))||'Todas';
 let loading=hasConfig;
 let showAll=false;
-// Editorial selection remains stable when carousel photographs are added.
-const leadArticleIds=["66e6eb9c-6ed9-452c-b8d7-59ae3a0ca45f", "1e50da69-331d-4c0e-917d-6dbd60764cb5", "530a563d-f1ea-400e-ba20-0f3c2fd3fb6b", "74a45a04-89db-408f-a8be-48224f81a597", "b6258a6a-f536-4f4e-be1d-b30e8833156f", "91fdeb98-758c-40d3-a6a3-854e13311fd2"];
-const isLeadArticle=a=>leadArticleIds.includes(a.id);
 const $=id=>document.getElementById(id);const reader=$('reader');
 $('date').textContent=new Date().toLocaleDateString('pt-PT',{dateStyle:'long',timeZone:'Europe/Lisbon'});$('year').textContent=new Date().getFullYear();
 const sectionCopy={Angola:['Angola, em destaque.','Sociedade, cidadania e economia: acompanhe os acontecimentos do país.'],Mundo:['O mundo, em perspetiva.','As notícias internacionais que ajudam a compreender o nosso tempo.'],Diáspora:['Ligações sem fronteiras.','Notícias das comunidades angolanas e lusófonas pelo mundo.'],Desporto:['A emoção do desporto.','Futebol, basquetebol e os protagonistas da atualidade desportiva.'],Tecnologia:['O futuro acontece agora.','Tecnologia, inteligência artificial e cibersegurança em linguagem clara.'],Oportunidades:['O próximo passo começa aqui.','Formação, bolsas e oportunidades com fontes e requisitos identificados.']};
@@ -33,7 +30,7 @@ const repeatedStockSportPhoto=/photo-1771344164616-3582e4dc2f07|photo-1549210194
 // Only photographs taken during competitive matches may illustrate result stories.
 // A photograph from a different match is explicitly marked as archive in its caption.
 // No training sessions, portraits or press presentations.
-const sportsSelectedTeamPhotos={ 
+const sportsSelectedTeamPhotos={
  'a708d825-c1d6-44c1-84b3-b7d258a9994c':{
   image_url:'https://upload.wikimedia.org/wikipedia/commons/8/8d/Giannis_Antetokounmpo_Free_Throw_2026_Denver.jpg',
   image_alt:'Giannis Antetokounmpo, dos Milwaukee Bucks, prepara um lance livre frente aos Denver Nuggets em janeiro de 2026',
@@ -210,31 +207,32 @@ async function paintSlide(){
  const a=slides[slideIndex];if(!a){emptySlides();return;}
  const request=++slideRequest;slideLoading=true;clearInterval(slideTimer);carousel.dataset.autoPlaying='false';carousel.setAttribute('aria-busy','true');
  let shown=a,photo;
- try{try{photo=await loadSlidePhoto(a);}catch(error){if(!hasSlidePhoto(a._fallbackPhoto||{}))throw error;shown={...a,...a._fallbackPhoto};photo=await loadSlidePhoto(shown);}}
- catch(error){if(request!==slideRequest)return;failedSlides.add(a.id);slides=slides.filter(item=>item.id!==a.id);slideIndex=slideIndex%Math.max(slides.length,1);slideLoading=false;if(slides.length)void paintSlide();else emptySlides();return;}
+ try{if(hasSlidePhoto(a)&&!failedSlides.has(a.id)){try{photo=await loadSlidePhoto(a);}catch(error){if(!hasSlidePhoto(a._fallbackPhoto||{}))throw error;shown={...a,...a._fallbackPhoto};photo=await loadSlidePhoto(shown);}}}
+ catch(error){if(request!==slideRequest)return;failedSlides.add(a.id);shown=a;photo=null;}
  if(request!==slideRequest)return;
- const art=$('slide-art');art.dataset.editorialPhoto='true';art.classList.remove('sports-teams-art');delete art.dataset.sportsMatch;art.replaceChildren(photo);art.dataset.category=shown.category;
- carousel.dataset.imageLayout=isBrandedCard(shown)?'card':'photo';
- const label=document.createElement('span');label.className='slide-photo-label';label.textContent=slidePhotoLabel(shown);art.append(label);
- if(!isBrandedCard(shown)){const brand=document.createElement('span');brand.className='slide-brand';brand.textContent='jingolokela';const sub=document.createElement('small');sub.textContent='para todos.';brand.append(sub);art.append(brand);}
+ const art=$('slide-art');art.dataset.editorialPhoto=String(Boolean(photo));art.classList.remove('sports-teams-art');delete art.dataset.sportsMatch;art.replaceChildren(...(photo?[photo]:[]));art.dataset.category=shown.category;
+ carousel.dataset.imageLayout=photo?(isBrandedCard(shown)?'card':'photo'):'text';
+ const label=document.createElement('span');label.className='slide-photo-label';label.textContent=photo?slidePhotoLabel(shown):'JINGOLOKELA PARA TODOS · '+shown.category.toUpperCase();art.append(label);
+ if(!photo||!isBrandedCard(shown)){const brand=document.createElement('span');brand.className='slide-brand';brand.textContent='jingolokela';const sub=document.createElement('small');sub.textContent='para todos.';brand.append(sub);art.append(brand);}
  $('slide-category').textContent=shown.category;$('slide-title').textContent=shown.title;$('slide-summary').textContent=shown.summary;
- $('slide-meta').textContent=new Date(shown.published_at).toLocaleDateString('pt-PT',{day:'numeric',month:'long',timeZone:'Europe/Lisbon'})+' · '+shown.image_credit;
+ $('slide-meta').textContent=new Date(shown.published_at).toLocaleDateString('pt-PT',{day:'numeric',month:'long',timeZone:'Europe/Lisbon'})+(photo?' · '+shown.image_credit:' · Jingolokela Para Todos');
  $('slide-counter').textContent=String(slideIndex+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
  bindArticleLink($('slide-title'),shown);bindArticleLink($('slide-open'),shown);
  ['slide-prev','slide-next','slide-toggle'].forEach(id=>{$(id).disabled=slides.length<2;});
  slideLoading=false;carousel.removeAttribute('aria-busy');carousel.dataset.photoReady='true';syncSlides();
- const next=slides[(slideIndex+1)%slides.length];if(next&&next.id!==a.id){const preload=new Image();preload.src=carouselPhotoUrl(next);}
+ const next=slides[(slideIndex+1)%slides.length];if(next&&next.id!==a.id&&hasSlidePhoto(next)&&!failedSlides.has(next.id)){const preload=new Image();preload.src=carouselPhotoUrl(next);}
 }
 function syncSlides(){
  clearInterval(slideTimer);$('slide-toggle').textContent=slidePaused?'Reproduzir':'Pausar';$('slide-toggle').setAttribute('aria-label',slidePaused?'Reproduzir carrossel':'Pausar carrossel');$('slide-counter').setAttribute('aria-live',slidePaused?'polite':'off');
- const play=!slidePaused&&!slideLoading&&slides.length>1&&!document.hidden&&!reader.open&&!carousel.matches(':hover')&&!carousel.contains(document.activeElement);
+ const play=!slidePaused&&!slideLoading&&slides.length>1&&!document.hidden&&!reader.open&&!(window.matchMedia('(hover: hover) and (pointer: fine)').matches&&carousel.matches(':hover'))&&(!carousel.contains(document.activeElement)||document.activeElement===$('slide-toggle'));
  carousel.dataset.autoPlaying=String(play);if(play)slideTimer=setInterval(()=>moveSlide(1),8000);
 }
 function moveSlide(step){if(!slides.length)return;slideIndex=(slideIndex+step+slides.length)%slides.length;void paintSlide();}
 function navigateSlide(step){slidePaused=true;moveSlide(step);syncSlides();}
 function setSlides(){
- slideRequest++;failedSlides.clear();const edition=articles.filter(a=>!a.demo&&(selected==='Todas'||a.category===selected));
- const remaining=edition.filter(a=>!isLeadArticle(a));slides=(selected==='Todas'&&remaining.length?remaining:edition).filter(hasSlidePhoto);
+ slideRequest++;failedSlides.clear();
+ slides=articles.filter(a=>!a.demo&&(selected==='Todas'||a.category===selected))
+  .sort((a,b)=>(Date.parse(b.published_at)||0)-(Date.parse(a.published_at)||0)||String(a.id).localeCompare(String(b.id)));
  if(!slides.length){emptySlides();return;}slideIndex=0;void paintSlide();
 }
 // Keep title, photograph, credit and article link together, including during rapid navigation.
