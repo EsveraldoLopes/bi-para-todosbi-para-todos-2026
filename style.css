@@ -237,3 +237,5 @@
 .sports-headline-controls button{background:#fff;border:1px solid #c7d2e3;border-radius:8px;padding:7px 10px;color:var(--navy);font-weight:700}
 
 .sports-headline-controls{flex-wrap:wrap}
+
+.sports-headline-controls:not(:focus-within){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);margin:0}

@@ -175,11 +175,11 @@ const HIGHLIGHT_LIMIT=20;
 const highlights=make('section');
 highlights.className='sports-highlights';
 highlights.setAttribute('aria-label','Destaques do Desporto');
-const frame=make('div'),counter=make('span'),controls=make('div');
+const frame=make('div'),controls=make('div');
 frame.className='sports-headline';frame.setAttribute('aria-live','polite');
 controls.className='sports-headline-controls';
-const prev=make('button','Anterior'),next=make('button','Seguinte'),rotation=make('button','Pausar destaques');
-prev.type=next.type=rotation.type='button';controls.append(prev,counter,next,rotation);
+const rotation=make('button','Pausar destaques');
+rotation.type='button';controls.append(rotation);
 highlights.append(make('h3','Destaques do Desporto'),frame,controls);
 document.querySelector('.sports-showcase-copy')?.append(highlights);
 let external=[],items=[],index=0,headlinesLoading=true,carouselVisible=false,hovering=false,rotationTimer;
@@ -206,7 +206,6 @@ new IntersectionObserver(([entry])=>{carouselVisible=entry.isIntersecting;syncRo
 function paintHeadline(){
  const a=items[index];
  controls.hidden=items.length<2;
- counter.textContent=a?(index+1)+' / '+items.length:'';
  if(!a){frame.textContent=headlinesLoading?'A consultar os destaques…':'Sem destaques recentes disponíveis.';return;}
  const link=make('a',a.title);link.href=a.link;
  const credit=make('small',a.source);
@@ -236,8 +235,6 @@ function renderHighlights(){
  }).slice(0,HIGHLIGHT_LIMIT);
  index=Math.max(0,items.findIndex(a=>a.link===current));paintHeadline();syncRotation();
 }
-prev.onclick=()=>{stepHeadline(-1);syncRotation();};
-next.onclick=()=>{stepHeadline(1);syncRotation();};
 new MutationObserver(renderHighlights).observe($('articles'),{childList:true});
 renderHighlights();
 fetch('/api/sports-headlines',{signal:AbortSignal.timeout(11000)}).then(r=>r.json()).then(data=>{
