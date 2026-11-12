@@ -38,7 +38,7 @@ function getEvents(feed,sport,league){
  }).filter(Boolean);
 }
 const timeFmt=new Intl.DateTimeFormat('pt-PT',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Lisbon'});
-function statusOf(e){if(e.state==='in')return e.detail||'AO VIVO';if(e.state==='post')return 'Final';return timeFmt.format(e.date);}
+function statusOf(e){if(e.state==='in')return e.detail?'Em direto · '+e.detail:'Em direto';if(e.state==='post')return 'Final';return timeFmt.format(e.date);}
 function scoreOf(c,e){return e.state==='pre'?'–':String(c.score??'–');}
 function crest(team){const href=safeLogo(team?.team?.logo||team?.team?.logos?.[0]?.href);if(!href)return null;const img=document.createElement('img');img.src=href;img.alt='Emblema de '+teamName(team);img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';return img;}
 function render(){
