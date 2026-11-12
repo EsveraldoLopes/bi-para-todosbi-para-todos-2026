@@ -6,6 +6,8 @@ const section=document.getElementById('sports-live');
 if(!section)return;
 const $=id=>document.getElementById(id);
 const LEAGUES=[
+ ['soccer','uefa.nations','Liga das Nações UEFA'],['soccer','caf.nations_qual','Qualificação para a CAN'],
+ ['soccer','fifa.friendly','Amigáveis de seleções'],['soccer','uefa.wchampions','Liga dos Campeões feminina'],
  ['soccer','por.1','Liga Portugal'],['soccer','eng.1','Premier League'],
  ['soccer','esp.1','LaLiga'],['soccer','uefa.champions','Champions League'],
  ['soccer','ita.1','Serie A'],['soccer','ger.1','Bundesliga'],
@@ -13,6 +15,7 @@ const LEAGUES=[
  ['hockey','nhl','NHL'],['football','nfl','NFL'],['baseball','mlb','MLB']
 ];
 const SPORT={soccer:'Futebol',basketball:'Basquetebol',hockey:'Hóquei no gelo',football:'Futebol americano',baseball:'Basebol'};
+let footballAvailable=false;
 let all=[],currentFilter='all',lastFetch=0,pending=false;
 const knownTeams=[];
 function addTeam(team){if(!team||!team.displayName)return;const key=normal(team.displayName);if(!knownTeams.some(t=>normal(t.displayName)===key))knownTeams.push(team);}
@@ -43,7 +46,7 @@ function render(){
  const selected=all.filter(e=>currentFilter==='all'||(currentFilter==='other'?!['soccer','basketball'].includes(e.sport):e.sport===currentFilter));
  selected.sort((a,b)=>(a.state==='in'?0:a.state==='pre'?1:2)-(b.state==='in'?0:b.state==='pre'?1:2)||a.date-b.date);
  const visible=selected.slice(0,10);
- if(!visible.length){const p=document.createElement('p');p.textContent=all.length?'Não há jogos disponíveis nesta modalidade para hoje.':'Sem jogos disponíveis neste momento. Consulte novamente mais tarde.';list.append(p);return;}
+ if(!visible.length){const p=document.createElement('p');p.textContent=currentFilter==='soccer'&&!footballAvailable?'Não foi possível consultar os jogos de futebol.':'Sem jogos nas competições acompanhadas para hoje.';list.append(p);return;}
  for(const e of visible){
   const card=document.createElement('article');card.className='sports-game';
   const top=document.createElement('div');top.className='sports-game-top';
@@ -166,22 +169,112 @@ document.addEventListener('sports-art-fallback',scheduleEnrich);
 scheduleEnrich();
 void loadTeamCatalogue();
 $('sports-explore').onclick=()=>{[...document.querySelectorAll('#categories button')].find(b=>b.textContent.includes('Desporto'))?.click();document.getElementById('articles').scrollIntoView({behavior:'smooth'});};
+const dayKey=date=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Lisbon',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date).filter(p=>p.type!=='literal').map(p=>p.value).join('');
+const make=(tag,value)=>{const node=document.createElement(tag);if(value)node.textContent=value;return node;};
+const highlights=make('section');
+highlights.hidden=true;highlights.setAttribute('aria-label','Destaques do Desporto');
+highlights.style.cssText='margin-top:20px;min-width:0';
+const copy=document.querySelector('.sports-showcase-copy');
+copy?.append(highlights);
+function renderHighlights(){
+ const items=articles.filter(a=>!a.demo&&a.category==='Desporto'&&!a._fallbackPhoto&&hasSlidePhoto(a)&&dayKey(Date.parse(a.published_at))===dayKey(Date.now()))
+  .sort((a,b)=>Date.parse(b.published_at)-Date.parse(a.published_at));
+ highlights.replaceChildren();highlights.hidden=true;
+ const title=make('h3','Destaques do Desporto'),frame=make('div'),counter=make('span');
+ const prev=make('button','Anterior'),next=make('button','Seguinte');
+ prev.type=next.type='button';counter.setAttribute('aria-live','polite');
+ const controls=make('div');controls.style.cssText='display:flex;gap:10px;align-items:center;flex-wrap:wrap';controls.append(prev,counter,next);
+ highlights.append(title,frame,controls);
+ let index=0,request=0;
+ function paint(step=1){
+  if(!items.length){highlights.hidden=true;return;}
+  const a=items[index],token=++request,img=articleImage(a,true);
+  const ready=()=>{
+   if(token!==request||!frame.isConnected)return;
+   img.style.cssText='display:block;width:100%;height:auto;border-radius:12px';
+   const link=make('a',a.title);link.href='/noticia/'+encodeURIComponent(a.id);
+   const credit=make('small',[a.image_credit,a.image_caption].filter(Boolean).join(' · '));
+   frame.replaceChildren(img,make('h4'),credit);frame.children[1].append(link);
+   highlights.hidden=false;counter.textContent=(index+1)+' / '+Math.min(items.length,10);
+   prev.disabled=next.disabled=items.length<2;
+  };
+  const fail=()=>{if(token!==request||!frame.isConnected)return;items.splice(index,1);if(items.length){index=(index+(step<0?-1:0)+items.length)%items.length;paint(step);}else highlights.hidden=true;};
+  if(!img){fail();return;}
+  if(img.complete){if(img.naturalWidth)ready();else fail();}
+  else{img.addEventListener('load',ready,{once:true});img.addEventListener('error',fail,{once:true});}
+ }
+ items.splice(10);
+ prev.onclick=()=>{index=(index-1+items.length)%items.length;paint(-1);};
+ next.onclick=()=>{index=(index+1)%items.length;paint();};
+ paint();
+}
+new MutationObserver(renderHighlights).observe($('articles'),{childList:true});
+renderHighlights();
+const tables=make('section'),chooser=make('select'),tableBody=make('div');
+tables.style.cssText='margin-top:20px;overflow-x:auto';
+chooser.setAttribute('aria-label','Competição para classificação');
+tables.append(make('h3','Classificações'),chooser,tableBody);section.append(tables);
+let standingsToken=0;
+const standingsCache=new Map();
+function configureStandings(){
+ const sport=currentFilter==='all'?'soccer':currentFilter;
+ const eligible=LEAGUES.filter(([kind,key])=>!key.includes('friendly')&&(sport==='other'?!['soccer','basketball'].includes(kind):sport===kind));
+ const previous=chooser.value;
+ chooser.replaceChildren(...eligible.map(([kind,key,label])=>new Option(label,kind+'/'+key)));
+ if(eligible.some(([kind,key])=>kind+'/'+key===previous))chooser.value=previous;
+ else if(sport==='soccer')chooser.value='soccer/por.1';
+ void loadStandings();
+}
+function standingsGroups(feed){
+ if(feed?.standings?.entries?.length)return [feed];
+ return (feed?.children||[]).flatMap(standingsGroups);
+}
+async function loadStandings(){
+ const key=chooser.value,token=++standingsToken;
+ tableBody.textContent='A consultar a classificação…';
+ try{
+  let entry=standingsCache.get(key);
+  if(!entry||Date.now()-entry.at>15*60000){
+   const response=await fetch('https://site.api.espn.com/apis/v2/sports/'+key+'/standings',{signal:AbortSignal.timeout(8500)});
+   if(!response.ok)throw Error('Indisponível');
+   entry={at:Date.now(),groups:standingsGroups(await response.json())};
+   if(!entry.groups.length)throw Error('Sem dados');
+   standingsCache.set(key,entry);
+  }
+  if(token!==standingsToken)return;
+  tableBody.replaceChildren();
+  for(const group of entry.groups){
+   const table=make('table'),head=table.createTHead().insertRow(),body=table.createTBody();
+   const entries=group.standings.entries,fields=[['J','gamesPlayed'],['V','wins'],['D','losses'],['Pts','points'],['% V','winPercent']]
+    .filter(([,name])=>(name!=='points'||key.startsWith('soccer/')||key.startsWith('hockey/'))&&entries.some(e=>e.stats?.some(x=>x.name===name)));
+   for(const label of ['Equipa',...fields.map(([label])=>label)]){const th=make('th',label);th.scope='col';head.append(th);}
+   for(const e of entries){
+    const row=body.insertRow();row.insertCell().textContent=teamName(e);
+    for(const [,name] of fields)row.insertCell().textContent=e.stats?.find(x=>x.name===name)?.displayValue??'—';
+   }
+   const caption=table.createCaption();caption.textContent=group.name||chooser.selectedOptions[0]?.textContent||'Classificação';
+   table.style.cssText='width:100%;text-align:left;margin:10px 0;font-size:.85rem';
+   tableBody.append(table);
+  }
+  tableBody.append(make('small','Fonte: ESPN'));
+ }catch{if(token===standingsToken)tableBody.textContent='Classificação indisponível para esta competição.';}
+}
+chooser.onchange=loadStandings;
 async function refresh(force=false){
  if(pending||document.hidden)return;
  if(!force&&Date.now()-lastFetch<MIN_DELAY)return;
  pending=true;$('sports-status').textContent='A atualizar resultados reais…';
- const dayParts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Lisbon',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
- const getPart=type=>dayParts.find(p=>p.type===type)?.value||'';
- const day=getPart('year')+getPart('month')+getPart('day');
+ const day=dayKey(Date.now());
  const settled=await Promise.allSettled(LEAGUES.map(async([sport,league,label])=>{
   const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),8500);
   try{const url='https://site.api.espn.com/apis/site/v2/sports/'+sport+'/'+league+'/scoreboard?dates='+day;
    const response=await fetch(url,{signal:controller.signal,cache:'no-store'});if(!response.ok)throw Error('Indisponível');
-   return getEvents(await response.json(),sport,label);
+   return {sport,events:getEvents(await response.json(),sport,label).filter(e=>dayKey(e.date)===day)};
   }finally{clearTimeout(timeout);}
  }));
  const success=settled.filter(r=>r.status==='fulfilled');
- if(success.length){const seen=new Set();all=success.flatMap(r=>r.value).filter(e=>{const key=e.sport+'/'+e.id;if(seen.has(key))return false;seen.add(key);return true;});lastFetch=Date.now();render();scheduleEnrich();}
+ footballAvailable=success.some(r=>r.value.sport==='soccer');
+ if(success.length){const seen=new Set();all=success.flatMap(r=>r.value.events).filter(e=>{const key=e.sport+'/'+e.id;if(seen.has(key))return false;seen.add(key);return true;});lastFetch=Date.now();render();scheduleEnrich();}
  const now=new Intl.DateTimeFormat('pt-PT',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Lisbon'}).format(new Date());
  $('sports-status').textContent=success.length?'Fonte: ESPN (dados externos, atualização '+now+' Lisboa). Pode haver atrasos ou ligas indisponíveis. Atualização automática enquanto esta área está visível.':'Não foi possível obter os resultados em tempo real. Volte a tentar. Não são apresentados marcadores fictícios.';
  pending=false;
@@ -189,12 +282,13 @@ async function refresh(force=false){
 for(const button of document.querySelectorAll('[data-sport-filter]'))button.addEventListener('click',()=>{
  currentFilter=button.dataset.sportFilter;
  for(const b of document.querySelectorAll('[data-sport-filter]'))b.setAttribute('aria-pressed',String(b===button));
- render();
+ render();configureStandings();
 });
 $('sports-refresh').addEventListener('click',()=>refresh(true));
 let visible=false;
 const observer=new IntersectionObserver(entries=>{visible=entries.some(e=>e.isIntersecting);if(visible)void refresh();},{rootMargin:'600px'});
 observer.observe(section);
+configureStandings();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&visible)void refresh();});
 setInterval(()=>{if(visible&&!document.hidden)void refresh();},REFRESH_INTERVAL);
 })();
