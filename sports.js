@@ -210,14 +210,31 @@ function renderHighlights(){
 }
 new MutationObserver(renderHighlights).observe($('articles'),{childList:true});
 renderHighlights();
-const tables=make('details'),toggle=make('summary','Ver classificações'),chooser=make('select'),tableBody=make('div');
+const tables=make('section'),toggle=make('button','Ver classificações'),chooser=make('select'),tableBody=make('div');
+const scores=$('sports-scores'),scoreStatus=$('sports-status'),scoreRefresh=$('sports-refresh');
 tables.className='sports-standings';
+tables.id='sports-standings';
+tables.hidden=true;
+tables.setAttribute('aria-label','Classificações');
+toggle.type='button';
+toggle.className='sports-standings-toggle';
+toggle.setAttribute('aria-controls',tables.id);
+toggle.setAttribute('aria-expanded','false');
 tableBody.className='sports-standings-body';
+tableBody.tabIndex=0;
+tableBody.setAttribute('role','region');
+tableBody.setAttribute('aria-label','Tabela de classificação');
 chooser.setAttribute('aria-label','Competição para classificação');
-tables.append(toggle,chooser,tableBody);section.append(tables);
-tables.addEventListener('toggle',()=>{
- toggle.textContent=tables.open?'Ocultar classificações':'Ver classificações';
- if(tables.open)void loadStandings();
+tables.append(chooser,tableBody);
+scores.before(toggle,tables);
+toggle.addEventListener('click',()=>{
+ const show=tables.hidden;
+ tables.hidden=!show;
+ scores.hidden=scoreStatus.hidden=scoreRefresh.hidden=show;
+ toggle.textContent=show?'Voltar aos jogos em direto':'Ver classificações';
+ toggle.setAttribute('aria-expanded',String(show));
+ if(show)void loadStandings();
+ else void refresh();
 });
 let standingsToken=0;
 const standingsCache=new Map();
@@ -228,7 +245,7 @@ function configureStandings(){
  chooser.replaceChildren(...eligible.map(([kind,key,label])=>new Option(label,kind+'/'+key)));
  if(eligible.some(([kind,key])=>kind+'/'+key===previous))chooser.value=previous;
  else if(sport==='soccer')chooser.value='soccer/por.1';
- if(tables.open)void loadStandings();
+ if(!tables.hidden)void loadStandings();
 }
 function standingsGroups(feed){
  if(feed?.standings?.entries?.length)return [feed];
