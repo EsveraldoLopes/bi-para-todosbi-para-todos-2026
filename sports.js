@@ -177,11 +177,31 @@ highlights.setAttribute('aria-label','Destaques do Desporto');
 const frame=make('div'),counter=make('span'),controls=make('div');
 frame.className='sports-headline';frame.setAttribute('aria-live','polite');
 controls.className='sports-headline-controls';
-const prev=make('button','Anterior'),next=make('button','Seguinte');
-prev.type=next.type='button';controls.append(prev,counter,next);
+const prev=make('button','Anterior'),next=make('button','Seguinte'),rotation=make('button','Pausar destaques');
+prev.type=next.type=rotation.type='button';controls.append(prev,counter,next,rotation);
 highlights.append(make('h3','Destaques do Desporto'),frame,controls);
 document.querySelector('.sports-showcase-copy')?.append(highlights);
-let external=[],items=[],index=0,headlinesLoading=true;
+let external=[],items=[],index=0,headlinesLoading=true,carouselVisible=false,hovering=false,rotationTimer;
+const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+let rotationEnabled=!reducedMotion.matches;
+function syncRotation(){
+ clearInterval(rotationTimer);
+ rotation.textContent=rotationEnabled?'Pausar destaques':'Retomar destaques';
+ const active=rotationEnabled&&carouselVisible&&!document.hidden&&!hovering&&!frame.contains(document.activeElement)&&items.length>1;
+ frame.setAttribute('aria-live',active?'off':'polite');
+ if(active)rotationTimer=setInterval(()=>stepHeadline(1),8000);
+}
+function stepHeadline(step){
+ if(items.length){index=(index+step+items.length)%items.length;paintHeadline();}
+}
+rotation.onclick=()=>{rotationEnabled=!rotationEnabled;syncRotation();};
+highlights.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse'){hovering=true;syncRotation();}});
+highlights.addEventListener('pointerleave',()=>{hovering=false;syncRotation();});
+frame.addEventListener('focusin',syncRotation);
+frame.addEventListener('focusout',()=>setTimeout(syncRotation,0));
+document.addEventListener('visibilitychange',syncRotation);
+reducedMotion.addEventListener('change',e=>{rotationEnabled=!e.matches;syncRotation();});
+new IntersectionObserver(([entry])=>{carouselVisible=entry.isIntersecting;syncRotation();},{threshold:0.25}).observe(highlights);
 function paintHeadline(){
  const a=items[index];
  controls.hidden=items.length<2;
@@ -205,20 +225,23 @@ function renderHighlights(){
  const own=articles.filter(a=>!a.demo&&a.category==='Desporto'&&dayKey(Date.parse(a.published_at))===dayKey(now)&&Date.parse(a.published_at)<=now)
   .sort((a,b)=>Date.parse(b.published_at)-Date.parse(a.published_at))
   .map(a=>({title:a.title,link:'/noticia/'+encodeURIComponent(a.id),source:'Jingolokela Para Todos',article:a}));
- const zero=external.filter(a=>a.source==='zerozero'),scoresNews=external.filter(a=>a.source==='365Scores');
+ const bySource=new Map();
+ for(const a of external){if(!bySource.has(a.source))bySource.set(a.source,[]);bySource.get(a.source).push(a);}
+ const groups=[own,...bySource.values()],mixed=[];
+ for(let i=0;i<10;i++)for(const group of groups)if(group[i])mixed.push(group[i]);
  const seen=new Set();
- items=[...own.slice(0,4),...zero.slice(0,3),...scoresNews.slice(0,3),...own,...zero,...scoresNews].filter(a=>{
+ items=mixed.filter(a=>{
   const key=normal(a.title);if(!key||seen.has(key))return false;seen.add(key);return true;
  }).slice(0,10);
- index=Math.max(0,items.findIndex(a=>a.link===current));paintHeadline();
+ index=Math.max(0,items.findIndex(a=>a.link===current));paintHeadline();syncRotation();
 }
-prev.onclick=()=>{if(items.length){index=(index+items.length-1)%items.length;paintHeadline();}};
-next.onclick=()=>{if(items.length){index=(index+1)%items.length;paintHeadline();}};
+prev.onclick=()=>{stepHeadline(-1);syncRotation();};
+next.onclick=()=>{stepHeadline(1);syncRotation();};
 new MutationObserver(renderHighlights).observe($('articles'),{childList:true});
 renderHighlights();
 fetch('/api/sports-headlines',{signal:AbortSignal.timeout(11000)}).then(r=>r.json()).then(data=>{
  external=(Array.isArray(data.items)?data.items:[]).filter(a=>{
-  try{const u=new URL(a.link);return typeof a.title==='string'&&u.protocol==='https:'&&['news.google.com','zerozero.pt','www.zerozero.pt','www.365scores.com','365scores.com'].includes(u.hostname)&&['zerozero','365Scores'].includes(a.source);}catch{return false;}
+  try{const u=new URL(a.link);return typeof a.title==='string'&&u.protocol==='https:'&&['news.google.com','zerozero.pt','www.zerozero.pt','www.365scores.com','365scores.com','abola.pt','www.abola.pt','record.pt','www.record.pt','ojogo.pt','www.ojogo.pt','bbc.co.uk','www.bbc.co.uk','www.bbc.com'].includes(u.hostname)&&['zerozero','365Scores','A Bola','Record','O Jogo','BBC Sport'].includes(a.source);}catch{return false;}
  });
 }).catch(()=>{}).finally(()=>{headlinesLoading=false;renderHighlights();});
 const tables=make('section'),toggle=make('button','Ver classificações'),chooser=make('select'),tableBody=make('div');
