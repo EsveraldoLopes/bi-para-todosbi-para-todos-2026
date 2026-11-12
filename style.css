@@ -221,3 +221,8 @@
 .popular-list a{display:block}
 
 .sports-live-now{white-space:nowrap}
+
+.sports-standings{margin-top:16px;min-width:0}
+.sports-standings summary{width:fit-content;padding:8px 12px;border:1px solid #c7d2e3;border-radius:8px;background:#f3f6fb;color:var(--navy);font-size:13px;font-weight:700;cursor:pointer}
+.sports-standings select{max-width:100%;margin-top:12px}
+.sports-standings-body{margin-top:8px;overflow-x:auto}

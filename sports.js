@@ -210,10 +210,15 @@ function renderHighlights(){
 }
 new MutationObserver(renderHighlights).observe($('articles'),{childList:true});
 renderHighlights();
-const tables=make('section'),chooser=make('select'),tableBody=make('div');
-tables.style.cssText='margin-top:20px;overflow-x:auto';
+const tables=make('details'),toggle=make('summary','Ver classificações'),chooser=make('select'),tableBody=make('div');
+tables.className='sports-standings';
+tableBody.className='sports-standings-body';
 chooser.setAttribute('aria-label','Competição para classificação');
-tables.append(make('h3','Classificações'),chooser,tableBody);section.append(tables);
+tables.append(toggle,chooser,tableBody);section.append(tables);
+tables.addEventListener('toggle',()=>{
+ toggle.textContent=tables.open?'Ocultar classificações':'Ver classificações';
+ if(tables.open)void loadStandings();
+});
 let standingsToken=0;
 const standingsCache=new Map();
 function configureStandings(){
@@ -223,7 +228,7 @@ function configureStandings(){
  chooser.replaceChildren(...eligible.map(([kind,key,label])=>new Option(label,kind+'/'+key)));
  if(eligible.some(([kind,key])=>kind+'/'+key===previous))chooser.value=previous;
  else if(sport==='soccer')chooser.value='soccer/por.1';
- void loadStandings();
+ if(tables.open)void loadStandings();
 }
 function standingsGroups(feed){
  if(feed?.standings?.entries?.length)return [feed];
