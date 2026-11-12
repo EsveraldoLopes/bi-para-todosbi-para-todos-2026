@@ -172,44 +172,55 @@ $('sports-explore').onclick=()=>{[...document.querySelectorAll('#categories butt
 const dayKey=date=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Lisbon',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date).filter(p=>p.type!=='literal').map(p=>p.value).join('');
 const make=(tag,value)=>{const node=document.createElement(tag);if(value)node.textContent=value;return node;};
 const highlights=make('section');
-highlights.hidden=true;highlights.setAttribute('aria-label','Destaques do Desporto');
-highlights.style.cssText='margin-top:20px;min-width:0';
-const copy=document.querySelector('.sports-showcase-copy');
-copy?.append(highlights);
-function renderHighlights(){
- const items=articles.filter(a=>!a.demo&&a.category==='Desporto'&&!a._fallbackPhoto&&hasSlidePhoto(a)&&dayKey(Date.parse(a.published_at))===dayKey(Date.now()))
-  .sort((a,b)=>Date.parse(b.published_at)-Date.parse(a.published_at));
- highlights.replaceChildren();highlights.hidden=true;
- const title=make('h3','Destaques do Desporto'),frame=make('div'),counter=make('span');
- const prev=make('button','Anterior'),next=make('button','Seguinte');
- prev.type=next.type='button';counter.setAttribute('aria-live','polite');
- const controls=make('div');controls.style.cssText='display:flex;gap:10px;align-items:center;flex-wrap:wrap';controls.append(prev,counter,next);
- highlights.append(title,frame,controls);
- let index=0,request=0;
- function paint(step=1){
-  if(!items.length){highlights.hidden=true;return;}
-  const a=items[index],token=++request,img=articleImage(a,true);
-  const ready=()=>{
-   if(token!==request||!frame.isConnected)return;
-   img.style.cssText='display:block;width:100%;height:auto;border-radius:12px';
-   const link=make('a',a.title);link.href='/noticia/'+encodeURIComponent(a.id);
-   const credit=make('small',[a.image_credit,a.image_caption].filter(Boolean).join(' · '));
-   frame.replaceChildren(img,make('h4'),credit);frame.children[1].append(link);
-   highlights.hidden=false;counter.textContent=(index+1)+' / '+Math.min(items.length,10);
-   prev.disabled=next.disabled=items.length<2;
-  };
-  const fail=()=>{if(token!==request||!frame.isConnected)return;items.splice(index,1);if(items.length){index=(index+(step<0?-1:0)+items.length)%items.length;paint(step);}else highlights.hidden=true;};
-  if(!img){fail();return;}
-  if(img.complete){if(img.naturalWidth)ready();else fail();}
-  else{img.addEventListener('load',ready,{once:true});img.addEventListener('error',fail,{once:true});}
+highlights.className='sports-highlights';
+highlights.setAttribute('aria-label','Destaques do Desporto');
+const frame=make('div'),counter=make('span'),controls=make('div');
+frame.className='sports-headline';frame.setAttribute('aria-live','polite');
+controls.className='sports-headline-controls';
+const prev=make('button','Anterior'),next=make('button','Seguinte');
+prev.type=next.type='button';controls.append(prev,counter,next);
+highlights.append(make('h3','Destaques do Desporto'),frame,controls);
+document.querySelector('.sports-showcase-copy')?.append(highlights);
+let external=[],items=[],index=0,headlinesLoading=true;
+function paintHeadline(){
+ const a=items[index];
+ controls.hidden=items.length<2;
+ counter.textContent=a?(index+1)+' / '+items.length:'';
+ if(!a){frame.textContent=headlinesLoading?'A consultar os destaques…':'Sem destaques recentes disponíveis.';return;}
+ const link=make('a',a.title);link.href=a.link;
+ const credit=make('small',a.source);
+ const heading=make('h4');heading.append(link);
+ frame.replaceChildren(credit,heading);
+ if(a.article&&!a.article._fallbackPhoto&&hasSlidePhoto(a.article)){
+  const img=articleImage(a.article,true);
+  if(img){
+   const attribution=make('small',[a.article.image_credit,a.article.image_caption].filter(Boolean).join(' · '));
+   const show=()=>{if(heading.parentNode===frame&&img.naturalWidth){frame.prepend(img);if(attribution.textContent)frame.append(attribution);}};
+   if(img.complete)show();else img.addEventListener('load',show,{once:true});
+  }
  }
- items.splice(10);
- prev.onclick=()=>{index=(index-1+items.length)%items.length;paint(-1);};
- next.onclick=()=>{index=(index+1)%items.length;paint();};
- paint();
 }
+function renderHighlights(){
+ const current=items[index]?.link,now=Date.now();
+ const own=articles.filter(a=>!a.demo&&a.category==='Desporto'&&dayKey(Date.parse(a.published_at))===dayKey(now)&&Date.parse(a.published_at)<=now)
+  .sort((a,b)=>Date.parse(b.published_at)-Date.parse(a.published_at))
+  .map(a=>({title:a.title,link:'/noticia/'+encodeURIComponent(a.id),source:'Jingolokela Para Todos',article:a}));
+ const zero=external.filter(a=>a.source==='zerozero'),scoresNews=external.filter(a=>a.source==='365Scores');
+ const seen=new Set();
+ items=[...own.slice(0,4),...zero.slice(0,3),...scoresNews.slice(0,3),...own,...zero,...scoresNews].filter(a=>{
+  const key=normal(a.title);if(!key||seen.has(key))return false;seen.add(key);return true;
+ }).slice(0,10);
+ index=Math.max(0,items.findIndex(a=>a.link===current));paintHeadline();
+}
+prev.onclick=()=>{if(items.length){index=(index+items.length-1)%items.length;paintHeadline();}};
+next.onclick=()=>{if(items.length){index=(index+1)%items.length;paintHeadline();}};
 new MutationObserver(renderHighlights).observe($('articles'),{childList:true});
 renderHighlights();
+fetch('/api/sports-headlines',{signal:AbortSignal.timeout(11000)}).then(r=>r.json()).then(data=>{
+ external=(Array.isArray(data.items)?data.items:[]).filter(a=>{
+  try{const u=new URL(a.link);return typeof a.title==='string'&&u.protocol==='https:'&&['news.google.com','zerozero.pt','www.zerozero.pt','www.365scores.com','365scores.com'].includes(u.hostname)&&['zerozero','365Scores'].includes(a.source);}catch{return false;}
+ });
+}).catch(()=>{}).finally(()=>{headlinesLoading=false;renderHighlights();});
 const tables=make('section'),toggle=make('button','Ver classificações'),chooser=make('select'),tableBody=make('div');
 const scores=$('sports-scores'),scoreStatus=$('sports-status'),scoreRefresh=$('sports-refresh');
 tables.className='sports-standings';
