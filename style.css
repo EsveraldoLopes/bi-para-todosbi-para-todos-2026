@@ -239,3 +239,24 @@
 .sports-headline-controls{flex-wrap:wrap}
 
 .sports-headline-controls:not(:focus-within){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);margin:0}
+
+/* Compact economy panel: the provider and headlines keep independent space. */
+#economia{padding:14px 18px;scroll-margin-top:76px}
+#economia .market-heading h2{font-size:clamp(18px,2vw,23px)}
+#economia .market-heading .eyebrow{margin-bottom:4px}
+#economia .economy-split{margin-top:9px;gap:12px;align-items:start}
+#economia .market-intro{margin:0 0 6px}
+#economia .tradingview-widget-container{height:auto}
+#economia .tradingview-widget-container__widget{height:auto}
+#economia .tradingview-widget-copyright{padding:3px 0}
+#economia .economy-press{padding:12px}
+#economia .economy-press h3{font-size:18px}
+#economia .economy-tabs{margin:8px 0}
+#economia .economy-auto-note{margin:6px 0}
+#economy-news{max-height:218px;overflow:auto;scrollbar-width:thin}
+#economia .economy-story{padding:7px 9px;margin-bottom:5px}
+#economia .economy-story small{margin-top:3px}
+#economia .market-note{margin:5px 0}
+#economia .market-details{font-size:11px;color:var(--muted)}
+#economia .market-details summary{cursor:pointer;width:fit-content}
+#economy-more{font-size:12px}
