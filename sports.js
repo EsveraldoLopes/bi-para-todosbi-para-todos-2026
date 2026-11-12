@@ -171,6 +171,7 @@ void loadTeamCatalogue();
 $('sports-explore').onclick=()=>{[...document.querySelectorAll('#categories button')].find(b=>b.textContent.includes('Desporto'))?.click();document.getElementById('articles').scrollIntoView({behavior:'smooth'});};
 const dayKey=date=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Lisbon',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date).filter(p=>p.type!=='literal').map(p=>p.value).join('');
 const make=(tag,value)=>{const node=document.createElement(tag);if(value)node.textContent=value;return node;};
+const HIGHLIGHT_LIMIT=20;
 const highlights=make('section');
 highlights.className='sports-highlights';
 highlights.setAttribute('aria-label','Destaques do Desporto');
@@ -228,11 +229,11 @@ function renderHighlights(){
  const bySource=new Map();
  for(const a of external){if(!bySource.has(a.source))bySource.set(a.source,[]);bySource.get(a.source).push(a);}
  const groups=[own,...bySource.values()],mixed=[];
- for(let i=0;i<10;i++)for(const group of groups)if(group[i])mixed.push(group[i]);
+ for(let i=0;i<HIGHLIGHT_LIMIT;i++)for(const group of groups)if(group[i])mixed.push(group[i]);
  const seen=new Set();
  items=mixed.filter(a=>{
   const key=normal(a.title);if(!key||seen.has(key))return false;seen.add(key);return true;
- }).slice(0,10);
+ }).slice(0,HIGHLIGHT_LIMIT);
  index=Math.max(0,items.findIndex(a=>a.link===current));paintHeadline();syncRotation();
 }
 prev.onclick=()=>{stepHeadline(-1);syncRotation();};
