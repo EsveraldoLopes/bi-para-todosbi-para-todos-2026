@@ -260,3 +260,7 @@
 #economia .market-details{font-size:11px;color:var(--muted)}
 #economia .market-details summary{cursor:pointer;width:fit-content}
 #economy-more{font-size:12px}
+
+/* Brand card for articles without an editorial photo or team artwork. */
+.article .art:not(.has-photo):not(.sports-teams-art){background:#f3f5f8 url('/media/jingolokela-partilha.png') center/contain no-repeat}
+.article .art:not(.has-photo):not(.sports-teams-art)::before,.article .art:not(.has-photo):not(.sports-teams-art)::after,.article .art:not(.has-photo):not(.sports-teams-art)>.art-symbol,.article .art:not(.has-photo):not(.sports-teams-art)>.label,.article .art:not(.has-photo):not(.sports-teams-art)>.number{display:none}
