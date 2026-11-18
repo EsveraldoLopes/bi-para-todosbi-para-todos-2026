@@ -175,16 +175,40 @@ function renderBreakingAlert(){
   banner=document.createElement('aside');
   banner.id='breaking-alert';
   banner.setAttribute('aria-label','Última Hora');
-  banner.style.cssText='margin:16px 0;padding:12px 16px;border-inline-start:5px solid #b5222e;background:#fff1f2;color:#14223a;overflow-wrap:anywhere';
+  banner.className='breaking-ticker';
   $('conteudo').prepend(banner);
  }
  const badge=document.createElement('strong');
- badge.textContent='ÚLTIMA HORA · ';
+ badge.className='breaking-ticker-badge';
+ badge.textContent='ÚLTIMA HORA';
  const link=document.createElement('a');
  link.href='/noticia/'+encodeURIComponent(item.id);
- link.textContent=item.title.slice(alertPrefix.length);
- link.style.textDecoration='underline';
- banner.replaceChildren(badge,link);
+ link.className='breaking-ticker-link';
+ const headline=item.title.slice(alertPrefix.length);
+ link.setAttribute('aria-label',headline);
+ const track=document.createElement('span');
+ track.className='breaking-ticker-track';
+ track.setAttribute('aria-hidden','true');
+ track.style.setProperty('--ticker-duration',Math.max(20,headline.length*0.38)+'s');
+ for(let i=0;i<2;i++){
+  const text=document.createElement('span');
+  text.className='breaking-ticker-copy';
+  text.textContent=headline;
+  track.append(text);
+ }
+ link.append(track);
+ const pause=document.createElement('button');
+ pause.type='button';
+ pause.className='breaking-ticker-pause';
+ const syncPause=()=>{
+  const paused=banner.dataset.paused==='true';
+  pause.textContent=paused?'Retomar':'Pausar';
+  pause.setAttribute('aria-label',paused?'Retomar movimento da faixa':'Pausar movimento da faixa');
+  pause.setAttribute('aria-pressed',String(paused));
+ };
+ pause.onclick=()=>{banner.dataset.paused=String(banner.dataset.paused!=='true');syncPause();};
+ syncPause();
+ banner.replaceChildren(badge,link,pause);
  banner.hidden=false;
  alertTimer=setTimeout(renderBreakingAlert,Date.parse(item.published_at)+alertWindow-now);
 }

@@ -264,3 +264,18 @@
 /* Brand card for articles without an editorial photo or team artwork. */
 .article .art:not(.has-photo):not(.sports-teams-art){background:#f3f5f8 url('/media/jingolokela-partilha.png') center/contain no-repeat}
 .article .art:not(.has-photo):not(.sports-teams-art)::before,.article .art:not(.has-photo):not(.sports-teams-art)::after,.article .art:not(.has-photo):not(.sports-teams-art)>.art-symbol,.article .art:not(.has-photo):not(.sports-teams-art)>.label,.article .art:not(.has-photo):not(.sports-teams-art)>.number{display:none}
+
+/* Breaking news: readable ticker with user-controlled, reduced-motion fallback. */
+.breaking-ticker{display:flex;align-items:center;gap:16px;margin:16px 0;padding:12px 16px;background:#a51220;color:#fff;border-radius:8px;min-width:0;animation:breaking-glow 3s ease-in-out infinite}
+.breaking-ticker[hidden]{display:none}
+.breaking-ticker-badge{flex:none;font-size:12px;letter-spacing:.06em;color:#fff}
+.breaking-ticker-link{display:block;flex:1;min-width:0;overflow:hidden;color:#fff;text-decoration:none;font-weight:650;line-height:1.6}
+.breaking-ticker-track{display:flex;width:max-content;animation:breaking-scroll var(--ticker-duration,25s) linear infinite}
+.breaking-ticker-copy{flex:none;white-space:nowrap;padding-inline-end:80px}
+.breaking-ticker-pause{flex:none;border:1px solid #ffffff80;border-radius:5px;padding:5px 9px;background:transparent;color:#fff;font:inherit;font-size:12px;cursor:pointer}
+.breaking-ticker a:focus-visible,.breaking-ticker button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.breaking-ticker:hover,.breaking-ticker:focus-within,.breaking-ticker[data-paused="true"],.breaking-ticker:hover .breaking-ticker-track,.breaking-ticker:focus-within .breaking-ticker-track,.breaking-ticker[data-paused="true"] .breaking-ticker-track{animation-play-state:paused}
+@keyframes breaking-scroll{to{transform:translateX(-50%)}}
+@keyframes breaking-glow{0%,100%{background-color:#a51220}50%{background-color:#c41c2c}}
+@media(max-width:600px){.breaking-ticker{gap:10px;padding:12px 10px;flex-wrap:wrap}.breaking-ticker-badge{order:0}.breaking-ticker-pause{order:1;margin-left:auto}.breaking-ticker-link{order:2;flex-basis:100%}}
+@media(prefers-reduced-motion:reduce){.breaking-ticker,.breaking-ticker-track{animation:none}.breaking-ticker-track{display:block;width:auto}.breaking-ticker-copy{white-space:normal;padding:0;overflow-wrap:anywhere}.breaking-ticker-copy+.breaking-ticker-copy,.breaking-ticker-pause{display:none}}
