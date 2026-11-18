@@ -160,15 +160,35 @@ $('reader-larger').onclick=()=>{readingSizeIndex=Math.min(readingSizes.length-1,
 applyReadingSize();
 function openArticle(article){window.JPTSaved?.setArticle($('reader-save'),article);if(!article.demo)void trackView(article.id);const permalink=$('article-permalink');permalink.hidden=!!article.demo;permalink.href=article.demo?'#':'/noticia/'+encodeURIComponent(article.id);relatedReading(article);readerImage(article);$('reader-title').textContent=article.title;$('reader-category').textContent=article.category;$('reader-meta').textContent=article.demo?'Apresentação editorial · Redação Jingolokela Para Todos':`${article.author||'Redação Jingolokela Para Todos'} · ${new Date(article.published_at).toLocaleDateString('pt-PT')}`;$('reader-body').textContent=article.body||article.summary;$('reader-time').textContent=Math.max(1,Math.ceil(String(article.body||article.summary||'').trim().split(/\s+/).filter(Boolean).length/200))+' min de leitura · estimativa';const nativeShare=$('reader-native-share');nativeShare.hidden=!!article.demo||typeof navigator.share!=='function';nativeShare.onclick=async()=>{try{await navigator.share({title:article.title,text:article.summary,url:'https://www.jingolokela.com/noticia/'+encodeURIComponent(article.id)});}catch(error){if(error.name!=='AbortError')$('share-status').textContent='Use WhatsApp, Telegram ou copie a ligação abaixo.';}};const url=safeUrl(article.source_url);$('reader-source').hidden=!url;if(url)$('reader-source').href=url;const shareRoot=$('share-tools');shareRoot.hidden=!!article.demo;if(!article.demo){const full=new URL('/noticia/'+encodeURIComponent(article.id),'https://www.jingolokela.com').href;const url=encodeURIComponent(full);const title=encodeURIComponent(article.title+' — Jingolokela Para Todos');$('share-whatsapp').href='https://api.whatsapp.com/send?text='+title+'%20'+url;$('share-facebook').href='https://www.facebook.com/sharer/sharer.php?u='+url;$('share-telegram').href='https://t.me/share/url?url='+url+'&text='+title;}$('share-status').textContent='';$('share').onclick=async()=>{const link=new URL('/noticia/'+encodeURIComponent(article.id),'https://www.jingolokela.com');try{await navigator.clipboard.writeText(link.href);$('share-status').textContent='Ligação copiada.';}catch{$('share-status').textContent='Copie esta ligação: '+link.href;}};if(!reader.open)reader.showModal();syncSlides();}
 const alertPrefix='Última Hora: ';
-const alertWindow=6*60*60*1000;
+const alertWindow=60*60*1000;
 let alertTimer;
+let liveBreakingItems=null,breakingRefreshBusy=false;
 function activeAlert(items,now){
  return items.filter(a=>!a.demo&&a.title.startsWith(alertPrefix)&&Date.parse(a.published_at)<=now&&now-Date.parse(a.published_at)<alertWindow)
   .sort((a,b)=>Date.parse(b.published_at)-Date.parse(a.published_at))[0];
 }
+async function refreshBreakingAlert(){
+ if(!hasConfig||document.hidden||breakingRefreshBusy)return;
+ breakingRefreshBusy=true;
+ try{
+  const cfg=window.PORTAL_CONFIG;
+  const url=new URL('/rest/v1/articles',cfg.supabaseUrl);
+  url.search=new URLSearchParams({select:'id,title,published_at',published:'eq.true',title:'like.Última Hora: *',published_at:'lte.'+new Date().toISOString(),order:'published_at.desc,id.desc',limit:'1'}).toString();
+  const response=await fetch(url,{headers:{apikey:cfg.supabaseAnonKey,...(cfg.supabaseAnonKey.startsWith('sb_publishable_')?{}:{Authorization:'Bearer '+cfg.supabaseAnonKey})},cache:'no-store',signal:AbortSignal.timeout(10000)});
+  if(!response.ok)return;
+  const rows=await response.json();
+  if(!Array.isArray(rows))return;
+  const items=rows.filter(a=>typeof a.id==='string'&&typeof a.title==='string'&&Number.isFinite(Date.parse(a.published_at)));
+  const previous=activeAlert(liveBreakingItems||articles,Date.now());
+  liveBreakingItems=items;
+  const next=activeAlert(items,Date.now());
+  if(previous?.id!==next?.id||previous?.title!==next?.title||previous?.published_at!==next?.published_at)renderBreakingAlert();
+ }catch{/* Keep the last verified alert until its original expiry. */}
+ finally{breakingRefreshBusy=false;}
+}
 function renderBreakingAlert(){
  clearTimeout(alertTimer);
- const now=Date.now(),item=activeAlert(articles,now);
+ const now=Date.now(),item=activeAlert(liveBreakingItems||articles,now);
  let banner=$('breaking-alert');
  if(!item){if(banner)banner.hidden=true;return;}
  if(!banner){
@@ -398,7 +418,9 @@ if(followShareButton){
 setSlides();void trackView();load().then(()=>loadPopularArticles());
 $('editorial-refresh')?.addEventListener('click',()=>void load());
 setInterval(()=>{if(!document.hidden)void load().then(()=>loadPopularArticles());},15*60*1000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)void load();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){void load();void refreshBreakingAlert();}});
+void refreshBreakingAlert();
+setInterval(()=>void refreshBreakingAlert(),15000);
 void displayApprovedAds();
 
 /* Destaques económicos de cinco mercados de referência, rotação automática. */
