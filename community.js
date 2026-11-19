@@ -69,7 +69,8 @@
  function storedToken(id){try{const value=safeRead('localStorage',tokenKey(id));return /^[0-9a-f-]{36}$/i.test(value||'')?value:null;}catch{return null;}}
  function render(message=''){
   pollRoot.replaceChildren();
-  if(!current){pollRoot.append(make('p','','Não há uma sondagem aberta neste momento.'));return;}
+  const pollSection=document.getElementById('voz-do-leitor');if(pollSection)pollSection.hidden=!current;
+  if(!current)return;
   const form=make('form','poll-form'),field=make('fieldset');field.append(make('legend','poll-question',current.question));
   const options=make('div','poll-options');
   for(const option of current.options){
